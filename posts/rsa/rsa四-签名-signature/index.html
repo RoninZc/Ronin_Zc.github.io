@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="RSA(四) 签名 Signature">
+<meta itemprop="description" content="前言 由RSA(一) 背后的数学原理可知，RSA 既公钥加密技术主要是通过私钥加密信息，然后由公钥来解密信息；但是，从 RSA 的数学原理中我们可以知道，其实私钥加密信息，然后用公钥来解密也是可以的；而因为公钥是公开的，私钥加密的东西谁都可以进行解密，那这样做有什么意义呢？本章节就是来探讨这样做的意义何在？一句话概括，它的意义就在于签名( sign )；
+备注，本文是作者的原创作品，转载请注明出处。
+ 转载至https://www.shangyang.me/2017/05/24/encrypt-rsa-signature/
+ 场景 来看这样一个场景，Bob 给股票经纪人 Alice 发送了一封邮件，让 Alice 帮他大量购买某支股票；可是刚买不久，股票就大跌，于是 Bob 转而否认发过那封邮件，声称那封邮件是伪造的；那么作为法官的你，如何来验证之前发送的那封邮件到底是不是 Bob 发送的呢？
+要解决上述场景的问题，就需要使用到 RSA 签名技术了；
+签名 Signature 为保证邮件是 Bob 发送的，在邮件收发协议上做了如下的操作约定，
+ 首先双方通过邮件协议约定好签名的算法，比如都是用 MD5 或者是其它签名算法。 Bob 在发送邮件的同时，邮件系统将做如下的操作  通过签名算法 MD5 将邮件内容c进行 hash，得到邮件内容的签名(Sign)，记为 𝑆1； 通过 Bob 的私钥 𝑃 对 𝑆1 进行加密，得到加密后邮件内容的签名(Encrypted Sign)，记为 𝑆1𝑒； 最后，Bob 通过邮箱系统将签名 𝑆1𝑒S1e，邮件内容c，以及 Bob 的公钥 𝑃 三部分内容发送给 Alice； 如何保证公钥的安全性和可靠性，不在本文涉及；   Alice 收到 Bob 的邮件以后，邮箱系统会做如下的操作  使用 Bob 的公钥对 𝑆1𝑒 进行解密，得到 𝑆1； 使用双方事先约定好的签名算法 MD5 对c进行 hash 得到签名 𝑆2； 比较签名 𝑆1 和签名 𝑆2 是否相等 如果相等，则表示邮件内容没有被篡改； 如果不相等，则表示邮件内容被他人篡改；    不过，要保证信息的确没有被篡改，还有一条基本原则，就是 Bob 的公钥 𝑃 不能被篡改，如果公钥 𝑃 在 Bob 发送给 Alice 的过程被人篡改了，那么 Attacker 就可以自己杜撰一封邮件，并通过自己的私钥签名邮件，并将自己篡改后的公钥 𝑃𝑐Pc 一同发送给 Alice，那么这个时候，Alice 是没有办法确认邮件是否是被篡改过的；所以，用 RSA 签名的方式来保证信息没有被篡改过，一个基本的前提就是 Bob 的公钥 𝑃P 不能被第三方篡改；而要保证公钥不能被第三方篡改，就需要 PKI (Public Key Infrasture) 公钥基础设施来保证公钥的合法性，涉及到 CA，Root Certificate 根证书相关知识；这部分知识不打算在本文进行描述；相关内容参考 RSA(五) PKI (Public Key Infrastructure) 公钥基础设施；"><meta itemprop="datePublished" content="2021-03-03T13:44:25&#43;08:00" />
+<meta itemprop="dateModified" content="2021-03-03T13:44:25&#43;08:00" />
+<meta itemprop="wordCount" content="139">
+<meta itemprop="keywords" content="RSA," /><meta property="og:title" content="RSA(四) 签名 Signature" />
+<meta property="og:description" content="前言 由RSA(一) 背后的数学原理可知，RSA 既公钥加密技术主要是通过私钥加密信息，然后由公钥来解密信息；但是，从 RSA 的数学原理中我们可以知道，其实私钥加密信息，然后用公钥来解密也是可以的；而因为公钥是公开的，私钥加密的东西谁都可以进行解密，那这样做有什么意义呢？本章节就是来探讨这样做的意义何在？一句话概括，它的意义就在于签名( sign )；
+备注，本文是作者的原创作品，转载请注明出处。
+ 转载至https://www.shangyang.me/2017/05/24/encrypt-rsa-signature/
+ 场景 来看这样一个场景，Bob 给股票经纪人 Alice 发送了一封邮件，让 Alice 帮他大量购买某支股票；可是刚买不久，股票就大跌，于是 Bob 转而否认发过那封邮件，声称那封邮件是伪造的；那么作为法官的你，如何来验证之前发送的那封邮件到底是不是 Bob 发送的呢？
+要解决上述场景的问题，就需要使用到 RSA 签名技术了；
+签名 Signature 为保证邮件是 Bob 发送的，在邮件收发协议上做了如下的操作约定，
+ 首先双方通过邮件协议约定好签名的算法，比如都是用 MD5 或者是其它签名算法。 Bob 在发送邮件的同时，邮件系统将做如下的操作  通过签名算法 MD5 将邮件内容c进行 hash，得到邮件内容的签名(Sign)，记为 𝑆1； 通过 Bob 的私钥 𝑃 对 𝑆1 进行加密，得到加密后邮件内容的签名(Encrypted Sign)，记为 𝑆1𝑒； 最后，Bob 通过邮箱系统将签名 𝑆1𝑒S1e，邮件内容c，以及 Bob 的公钥 𝑃 三部分内容发送给 Alice； 如何保证公钥的安全性和可靠性，不在本文涉及；   Alice 收到 Bob 的邮件以后，邮箱系统会做如下的操作  使用 Bob 的公钥对 𝑆1𝑒 进行解密，得到 𝑆1； 使用双方事先约定好的签名算法 MD5 对c进行 hash 得到签名 𝑆2； 比较签名 𝑆1 和签名 𝑆2 是否相等 如果相等，则表示邮件内容没有被篡改； 如果不相等，则表示邮件内容被他人篡改；    不过，要保证信息的确没有被篡改，还有一条基本原则，就是 Bob 的公钥 𝑃 不能被篡改，如果公钥 𝑃 在 Bob 发送给 Alice 的过程被人篡改了，那么 Attacker 就可以自己杜撰一封邮件，并通过自己的私钥签名邮件，并将自己篡改后的公钥 𝑃𝑐Pc 一同发送给 Alice，那么这个时候，Alice 是没有办法确认邮件是否是被篡改过的；所以，用 RSA 签名的方式来保证信息没有被篡改过，一个基本的前提就是 Bob 的公钥 𝑃P 不能被第三方篡改；而要保证公钥不能被第三方篡改，就需要 PKI (Public Key Infrasture) 公钥基础设施来保证公钥的合法性，涉及到 CA，Root Certificate 根证书相关知识；这部分知识不打算在本文进行描述；相关内容参考 RSA(五) PKI (Public Key Infrastructure) 公钥基础设施；" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://roninzc.github.io/posts/rsa/rsa%E5%9B%9B-%E7%AD%BE%E5%90%8D-signature/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-03-03T13:44:25&#43;08:00" />
+<meta property="article:modified_time" content="2021-03-03T13:44:25&#43;08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="RSA(四) 签名 Signature"/>
+<meta name="twitter:description" content="前言 由RSA(一) 背后的数学原理可知，RSA 既公钥加密技术主要是通过私钥加密信息，然后由公钥来解密信息；但是，从 RSA 的数学原理中我们可以知道，其实私钥加密信息，然后用公钥来解密也是可以的；而因为公钥是公开的，私钥加密的东西谁都可以进行解密，那这样做有什么意义呢？本章节就是来探讨这样做的意义何在？一句话概括，它的意义就在于签名( sign )；
+备注，本文是作者的原创作品，转载请注明出处。
+ 转载至https://www.shangyang.me/2017/05/24/encrypt-rsa-signature/
+ 场景 来看这样一个场景，Bob 给股票经纪人 Alice 发送了一封邮件，让 Alice 帮他大量购买某支股票；可是刚买不久，股票就大跌，于是 Bob 转而否认发过那封邮件，声称那封邮件是伪造的；那么作为法官的你，如何来验证之前发送的那封邮件到底是不是 Bob 发送的呢？
+要解决上述场景的问题，就需要使用到 RSA 签名技术了；
+签名 Signature 为保证邮件是 Bob 发送的，在邮件收发协议上做了如下的操作约定，
+ 首先双方通过邮件协议约定好签名的算法，比如都是用 MD5 或者是其它签名算法。 Bob 在发送邮件的同时，邮件系统将做如下的操作  通过签名算法 MD5 将邮件内容c进行 hash，得到邮件内容的签名(Sign)，记为 𝑆1； 通过 Bob 的私钥 𝑃 对 𝑆1 进行加密，得到加密后邮件内容的签名(Encrypted Sign)，记为 𝑆1𝑒； 最后，Bob 通过邮箱系统将签名 𝑆1𝑒S1e，邮件内容c，以及 Bob 的公钥 𝑃 三部分内容发送给 Alice； 如何保证公钥的安全性和可靠性，不在本文涉及；   Alice 收到 Bob 的邮件以后，邮箱系统会做如下的操作  使用 Bob 的公钥对 𝑆1𝑒 进行解密，得到 𝑆1； 使用双方事先约定好的签名算法 MD5 对c进行 hash 得到签名 𝑆2； 比较签名 𝑆1 和签名 𝑆2 是否相等 如果相等，则表示邮件内容没有被篡改； 如果不相等，则表示邮件内容被他人篡改；    不过，要保证信息的确没有被篡改，还有一条基本原则，就是 Bob 的公钥 𝑃 不能被篡改，如果公钥 𝑃 在 Bob 发送给 Alice 的过程被人篡改了，那么 Attacker 就可以自己杜撰一封邮件，并通过自己的私钥签名邮件，并将自己篡改后的公钥 𝑃𝑐Pc 一同发送给 Alice，那么这个时候，Alice 是没有办法确认邮件是否是被篡改过的；所以，用 RSA 签名的方式来保证信息没有被篡改过，一个基本的前提就是 Bob 的公钥 𝑃P 不能被第三方篡改；而要保证公钥不能被第三方篡改，就需要 PKI (Public Key Infrasture) 公钥基础设施来保证公钥的合法性，涉及到 CA，Root Certificate 根证书相关知识；这部分知识不打算在本文进行描述；相关内容参考 RSA(五) PKI (Public Key Infrastructure) 公钥基础设施；"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>RSA(四) 签名 Signature</title>
+	<link rel="stylesheet" href="https://roninzc.github.io/css/style.min.b21595ccbc2181c24e6a019eb9b89ca67727675a14634f9cbdb25e7a4f556601.css">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://roninzc.github.io">RoninZc</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="https://roninzc.github.io/tags/">标签</a>
+					<a href="https://roninzc.github.io/about/">关于</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<span class="hdr-social hide-in-mobile"><a href="https://github.com/RoninZc" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://roninzc.github.io/posts/">文章</a></li>
+			<li><a href="https://roninzc.github.io/tags/">标签</a></li>
+			<li><a href="https://roninzc.github.io/about/">关于</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>3-3, 2021</span></div>
+				<h1>RSA(四) 签名 Signature</h1>
+			</header>
+			<div class="content">
+				<h1 id="前言">前言<a href="#前言" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>由<a href="https://www.shangyang.me/2017/05/19/encrypt-rsa-math/">RSA(一) 背后的数学原理</a>可知，RSA 既公钥加密技术主要是通过私钥加密信息，然后由公钥来解密信息；但是，从 RSA 的数学原理中我们可以知道，其实私钥加密信息，然后用公钥来解密也是可以的；而因为公钥是公开的，私钥加密的东西谁都可以进行解密，那这样做有什么意义呢？本章节就是来探讨这样做的意义何在？一句话概括，它的意义就在于签名( sign )；</p>
+<p>备注，本文是作者的原创作品，转载请注明出处。</p>
+<blockquote>
+<p>转载至<code>https://www.shangyang.me/2017/05/24/encrypt-rsa-signature/</code></p>
+</blockquote>
+<h1 id="场景">场景<a href="#场景" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>来看这样一个场景，Bob 给股票经纪人 Alice 发送了一封邮件，让 Alice 帮他大量购买某支股票；可是刚买不久，股票就大跌，于是 Bob 转而否认发过那封邮件，声称那封邮件是伪造的；那么作为法官的你，如何来验证之前发送的那封邮件到底是不是 Bob 发送的呢？</p>
+<p>要解决上述场景的问题，就需要使用到 RSA 签名技术了；</p>
+<h1 id="签名-signature">签名 Signature<a href="#签名-signature" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>为保证邮件是 Bob 发送的，在邮件收发协议上做了如下的操作约定，</p>
+<ol>
+<li>首先双方通过邮件协议约定好签名的算法，比如都是用 MD5 或者是其它签名算法。</li>
+<li>Bob 在发送邮件的同时，邮件系统将做如下的操作
+<ul>
+<li>通过签名算法 MD5 将邮件内容<code>c</code>进行 <em>hash</em>，得到邮件内容的签名(Sign)，记为 𝑆1；</li>
+<li>通过 Bob 的私钥 𝑃 对 𝑆1 进行加密，得到加密后邮件内容的签名(Encrypted Sign)，记为 𝑆1𝑒；</li>
+<li>最后，Bob 通过邮箱系统将签名 𝑆1𝑒S1e，邮件内容<code>c</code>，以及 Bob 的公钥 𝑃 三部分内容发送给 Alice；
+如何保证公钥的安全性和可靠性，不在本文涉及；</li>
+</ul>
+</li>
+<li>Alice 收到 Bob 的邮件以后，邮箱系统会做如下的操作
+<ul>
+<li>使用 Bob 的公钥对 𝑆1𝑒 进行解密，得到 𝑆1；</li>
+<li>使用双方事先约定好的签名算法 MD5 对<code>c</code>进行 <em>hash</em> 得到签名 𝑆2；</li>
+<li>比较签名 𝑆1 和签名 𝑆2 是否相等
+如果相等，则表示邮件内容没有被篡改；
+如果不相等，则表示邮件内容被他人篡改；</li>
+</ul>
+</li>
+</ol>
+<p>不过，要保证信息的确没有被篡改，还有一条基本原则，就是 Bob 的公钥 𝑃 不能被篡改，如果公钥 𝑃 在 Bob 发送给 Alice 的过程被人篡改了，那么 Attacker 就可以自己杜撰一封邮件，并通过自己的私钥签名邮件，并将自己篡改后的公钥 𝑃𝑐Pc 一同发送给 Alice，那么这个时候，Alice 是没有办法确认邮件是否是被篡改过的；所以，用 RSA 签名的方式来保证信息没有被篡改过，一个基本的前提就是 Bob 的公钥 𝑃P 不能被第三方篡改；而要保证公钥不能被第三方篡改，就需要 PKI (Public Key Infrasture) 公钥基础设施来保证公钥的合法性，涉及到 CA，Root Certificate 根证书相关知识；这部分知识不打算在本文进行描述；相关内容参考 <a href="https://www.shangyang.me/2017/05/25/encrypt-rsa-pki/">RSA(五) PKI (Public Key Infrastructure) 公钥基础设施</a>；</p>
+<p>备注：Root Certificate 根证书就是 CA 证书认证机构用来签名验证公钥 𝑃 的；</p>
+<h1 id="总结">总结<a href="#总结" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p><a href="https://www.shangyang.me/2017/05/24/encrypt-rsa-signature/#%E7%AD%BE%E5%90%8D-sign">签名 sign</a> 小节中详细的描述了 RSA 通过私钥签名的过程和作用；但是也知道，签名若要能起作用，必须借助 PKI 公钥基础设施来保证公钥的合法性；所以，可见，PKI 对于基于 RSA 的加密通讯协议起到至关重要的作用，没有它，一切基于 RSA 的加密通讯理论都白搭；后续章节，让我们来看看 PKI 是什么东西；</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://roninzc.github.io/tags/rsa">RSA</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2021-03-03 13:44 &#43;0800</p>
+			</footer>
+		</article>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://roninzc.github.io/posts/rsa/rsa%E4%BA%94-pki-public-key-infrastructure-%E5%85%AC%E9%92%A5%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>RSA(五) PKI (Public Key Infrastructure) 公钥基础设施</span>
+			</a>
+			<a class="prev-post" href="https://roninzc.github.io/posts/rsa/rsa%E4%B8%89-%E5%AF%86%E9%92%A5%E7%9A%84%E6%A0%BC%E5%BC%8F/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>RSA(三) 密钥的格式</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+						<script src="https://utteranc.es/client.js"
+							repo="RoninZc/blog"
+							issue-term="pathname"
+							theme="github-light"
+							crossorigin="anonymous"
+							async>
+			</script>
+		</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2020 - 2021 <a href="https://roninzc.github.io">RoninZc</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a>
+			
+		</p>
+	</footer>
+
+
+	<script src="https://roninzc.github.io/js/main.min.3b8561d63aeee77aa04e677df95581a230b4b43adf7b208b8d671433e446cfc1.js"></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-166045776-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

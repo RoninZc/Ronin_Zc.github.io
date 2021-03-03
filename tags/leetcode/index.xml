@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>LeetCode on RoninZc</title>
+    <link>https://roninzc.github.io/tags/leetcode/</link>
+    <description>Recent content in LeetCode on RoninZc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-hans</language>
+    <copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
+    <lastBuildDate>Wed, 03 Mar 2021 16:36:09 +0800</lastBuildDate><atom:link href="https://roninzc.github.io/tags/leetcode/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>LeetCode 338:比特位计数</title>
+      <link>https://roninzc.github.io/posts/%E7%AE%97%E6%B3%95/leetcode/leetcode-338%E6%AF%94%E7%89%B9%E4%BD%8D%E8%AE%A1%E6%95%B0/</link>
+      <pubDate>Wed, 03 Mar 2021 16:36:09 +0800</pubDate>
+      
+      <guid>https://roninzc.github.io/posts/%E7%AE%97%E6%B3%95/leetcode/leetcode-338%E6%AF%94%E7%89%B9%E4%BD%8D%E8%AE%A1%E6%95%B0/</guid>
+      <description>题目 给定一个非负整数 num。对于 0 ≤ i ≤ num 范围中的每个数字 i ，计算其二进制数中的 1 的数目并将它们作为数组返回
+示例1:
+ 输入: 2 输出: [0, 1, 1]
+ 示例2:
+ 输入: 5 输出: [0, 1, 1, 2, 1, 2]
+ 进阶:
+ 给出时间复杂度为 O(n * sizeof(integer)) 的解答非常容易. 但你可以在线性时间 O(n) 内用一趟扫描做到吗? 要求算法的空间复杂度为 O(n) 你能进一步完善解法吗？要求在C++或任何其他语言中不使用任何内置函数（如 C++ 中的 __builtin_popcount）来执行此操作  开始的思路 先不考虑进阶, 使用语言自带的函数进行解答，Golang中可以使用bits.OnesCount()函数来计算
+func countBits(num int) []int { nums := make([]int, num+1) for i := 0; i &amp;lt;= num; i++ { nums[i] = bits.</description>
+    </item>
+    
+  </channel>
+</rss>

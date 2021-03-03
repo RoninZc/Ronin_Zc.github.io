@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="RSA(一) 背后的数学原理">
+<meta itemprop="description" content="前言 本篇文章将试图从数学原理上理清 RSA 的加密解密的原理；并写一个简单的加密解密的用例来使用；
+备注，本文是作者的原创作品，转载请注明出处。
+ 转载至https://www.shangyang.me/2017/05/24/encrypt-rsa-keyformat/
+ 数论相关 模 N 随机选择两个大的质数 p 和 q，p 不等于 q, 计算得到 𝑁=𝑝𝑞N=pq
+欧拉函数的值 r = 𝜑(pq) 𝑟=𝜑(𝑝𝑞)=𝜑(𝑝)𝜑(𝑞)=(𝑝−1)(𝑞−1)r=𝜑(pq)=𝜑(p)𝜑(q)=(p−1)(q−1)
+欧拉函数值求的是有多少个小于 N 的数与 N 互质，如果 N 本身为质数，那么就有 N-1 个数与 N 互质；
+随机数 e 选择一个整数 e 且 1&lt;𝑒&lt;𝑟1&lt;e&lt;r，使得 e 与 r 互质(两个数的公约数为 1)；取 e 的目的是为了求得 e 关于 r 的模反元素 d；
+模反元素 d 什么是模反元素 d 由e小节可知，模反元素 d 是 e 关于 r 的模反元素且若模反元素 d 存在，当且仅当 e 与 r 互质；"><meta itemprop="datePublished" content="2021-03-03T13:40:25&#43;08:00" />
+<meta itemprop="dateModified" content="2021-03-03T13:40:25&#43;08:00" />
+<meta itemprop="wordCount" content="537">
+<meta itemprop="keywords" content="RSA," /><meta property="og:title" content="RSA(一) 背后的数学原理" />
+<meta property="og:description" content="前言 本篇文章将试图从数学原理上理清 RSA 的加密解密的原理；并写一个简单的加密解密的用例来使用；
+备注，本文是作者的原创作品，转载请注明出处。
+ 转载至https://www.shangyang.me/2017/05/24/encrypt-rsa-keyformat/
+ 数论相关 模 N 随机选择两个大的质数 p 和 q，p 不等于 q, 计算得到 𝑁=𝑝𝑞N=pq
+欧拉函数的值 r = 𝜑(pq) 𝑟=𝜑(𝑝𝑞)=𝜑(𝑝)𝜑(𝑞)=(𝑝−1)(𝑞−1)r=𝜑(pq)=𝜑(p)𝜑(q)=(p−1)(q−1)
+欧拉函数值求的是有多少个小于 N 的数与 N 互质，如果 N 本身为质数，那么就有 N-1 个数与 N 互质；
+随机数 e 选择一个整数 e 且 1&lt;𝑒&lt;𝑟1&lt;e&lt;r，使得 e 与 r 互质(两个数的公约数为 1)；取 e 的目的是为了求得 e 关于 r 的模反元素 d；
+模反元素 d 什么是模反元素 d 由e小节可知，模反元素 d 是 e 关于 r 的模反元素且若模反元素 d 存在，当且仅当 e 与 r 互质；" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://roninzc.github.io/posts/rsa/rsa%E4%B8%80-%E8%83%8C%E5%90%8E%E7%9A%84%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-03-03T13:40:25&#43;08:00" />
+<meta property="article:modified_time" content="2021-03-03T13:40:25&#43;08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="RSA(一) 背后的数学原理"/>
+<meta name="twitter:description" content="前言 本篇文章将试图从数学原理上理清 RSA 的加密解密的原理；并写一个简单的加密解密的用例来使用；
+备注，本文是作者的原创作品，转载请注明出处。
+ 转载至https://www.shangyang.me/2017/05/24/encrypt-rsa-keyformat/
+ 数论相关 模 N 随机选择两个大的质数 p 和 q，p 不等于 q, 计算得到 𝑁=𝑝𝑞N=pq
+欧拉函数的值 r = 𝜑(pq) 𝑟=𝜑(𝑝𝑞)=𝜑(𝑝)𝜑(𝑞)=(𝑝−1)(𝑞−1)r=𝜑(pq)=𝜑(p)𝜑(q)=(p−1)(q−1)
+欧拉函数值求的是有多少个小于 N 的数与 N 互质，如果 N 本身为质数，那么就有 N-1 个数与 N 互质；
+随机数 e 选择一个整数 e 且 1&lt;𝑒&lt;𝑟1&lt;e&lt;r，使得 e 与 r 互质(两个数的公约数为 1)；取 e 的目的是为了求得 e 关于 r 的模反元素 d；
+模反元素 d 什么是模反元素 d 由e小节可知，模反元素 d 是 e 关于 r 的模反元素且若模反元素 d 存在，当且仅当 e 与 r 互质；"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>RSA(一) 背后的数学原理</title>
+	<link rel="stylesheet" href="https://roninzc.github.io/css/style.min.b21595ccbc2181c24e6a019eb9b89ca67727675a14634f9cbdb25e7a4f556601.css">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://roninzc.github.io">RoninZc</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="https://roninzc.github.io/tags/">标签</a>
+					<a href="https://roninzc.github.io/about/">关于</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<span class="hdr-social hide-in-mobile"><a href="https://github.com/RoninZc" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://roninzc.github.io/posts/">文章</a></li>
+			<li><a href="https://roninzc.github.io/tags/">标签</a></li>
+			<li><a href="https://roninzc.github.io/about/">关于</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>3-3, 2021</span></div>
+				<h1>RSA(一) 背后的数学原理</h1>
+			</header>
+			<div class="content">
+				<h1 id="前言">前言<a href="#前言" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>本篇文章将试图从数学原理上理清 RSA 的加密解密的原理；并写一个简单的加密解密的用例来使用；</p>
+<p>备注，本文是作者的原创作品，转载请注明出处。</p>
+<blockquote>
+<p>转载至<code>https://www.shangyang.me/2017/05/24/encrypt-rsa-keyformat/</code></p>
+</blockquote>
+<h1 id="数论相关">数论相关<a href="#数论相关" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<h2 id="模-n">模 N<a href="#模-n" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>随机选择两个大的质数 p 和 q，p 不等于 q, 计算得到 𝑁=𝑝𝑞N=pq</p>
+<h2 id="欧拉函数的值-r--𝜑pq">欧拉函数的值 r = 𝜑(pq)<a href="#欧拉函数的值-r--𝜑pq" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>𝑟=𝜑(𝑝𝑞)=𝜑(𝑝)𝜑(𝑞)=(𝑝−1)(𝑞−1)r=𝜑(pq)=𝜑(p)𝜑(q)=(p−1)(q−1)</p>
+<p>欧拉函数值求的是有多少个小于 N 的数与 N 互质，如果 N 本身为质数，那么就有 N-1 个数与 N 互质；</p>
+<h2 id="随机数-e">随机数 e<a href="#随机数-e" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>选择一个整数 e 且 1&lt;𝑒&lt;𝑟1&lt;e&lt;r，使得 e 与 r 互质(两个数的公约数为 1)；取 e 的目的是为了求得 e 关于 r 的<a href="https://www.shangyang.me/2017/05/19/encrypt-rsa-math/">模反元素</a> d；</p>
+<h2 id="模反元素-d">模反元素 d<a href="#模反元素-d" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<h3 id="什么是模反元素-d">什么是模反元素 d<a href="#什么是模反元素-d" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>由<a href="https://www.shangyang.me/2017/05/19/encrypt-rsa-math/#%E9%9A%8F%E6%9C%BA%E6%95%B0-e">e</a>小节可知，模反元素 d 是 e 关于 r 的模反元素且若模反元素 d 存在，当且仅当 e 与 r 互质；</p>
+<p>模反元素的数学意义</p>
+<p>𝑒𝑑≡1(mod𝑟)ed≡1(modr)</p>
+<p>若 e 与 r 互质，那么总会找到这么一个数 d，使得 ed 和 1 与模 r 同余；通俗的说法既是，ed 除以 r 的余数与 1 除以 r 的余数相等，因为 1 除以 r 的余数恒等于 1，所以 ed 除以 r 的余数为 1，也就推出</p>
+<p>𝑒𝑑−1=𝑘𝑟ed−1=kr</p>
+<p>，该表达式的意思就是 ed - 1 是 r 的倍数；</p>
+<h3 id="如何计算得到-d">如何计算得到 d<a href="#如何计算得到-d" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>那么如何计算得出此模反元素 d 呢？</p>
+<p>根据<a href="https://zh.wikipedia.org/wiki/%E6%89%A9%E5%B1%95%E6%AC%A7%E5%87%A0%E9%87%8C%E5%BE%97%E7%AE%97%E6%B3%95">扩展欧几里得算法</a>的公式有，在(mod𝑟)(modr)之下，</p>
+<p>𝑒𝑥+𝑟𝑦=1ex+ry=1</p>
+<p>，此时 x 的解既是 e 关于模 r 的一个模反元素；认真的读者读到这里，肯定会产生疑问，上面的公式 𝑒𝑑−1=𝑘𝑟ed−1=kr 怎么看起来与 𝑒𝑥+𝑟𝑦=1ex+ry=1 怎么这么像呢，但是又有差别，我们将公式 𝑒𝑑−1=𝑘𝑟ed−1=kr 调整一下，得到</p>
+<p>𝑒𝑑−𝑘𝑟=1…①ed−kr=1…①</p>
+<p>将扩展欧几里得算法的公式 𝑒𝑥+𝑟𝑦=1ex+ry=1 的 x、y 值进行替换，x = d, y = k，得到</p>
+<p>𝑒𝑑+𝑘𝑟=1…②ed+kr=1…②</p>
+<p>什么，两个看似如此矛盾的两个不同的方程(公式 ① 和公式 ②)… 什么意思？谁是对的？谁是错的？</p>
+<p>摘抄<a href="https://zh.wikipedia.org/wiki/%E6%A8%A1%E5%8F%8D%E5%85%83%E7%B4%A0">模反元素</a>中的一段内容如下，</p>
+<blockquote>
+<p>事实上， 𝑥+𝑘𝑛(𝑘∈ℤ)x+kn(k∈ℤ)都是a关于模n的模逆元，这里我们取最小的正整数解 𝑥(mod𝑛)(𝑥&lt;𝑛)x(modn)(x&lt;n)</p>
+</blockquote>
+<p>对应到我们的例子中来，也就是 𝑑+𝑘𝑟(𝑘∈ℤ)d+kr(k∈ℤ) 都是 e 关于模 r 的模逆元，这里我们取最小的正整数解 𝑑(mod𝑟)(𝑑&lt;𝑟)d(modr)(d&lt;r)；由此可知，d 的解实际上有无限多个，满足 𝑑+𝑘𝑟(𝑘∈ℤ)d+kr(k∈ℤ)；k 是整数集合，包含正整数、负整数和零；</p>
+<p>其实，公式①和公式②其实可以理解为同一个方程，只是 Y 轴（这里指 K 轴）的方向发生了变化而已；</p>
+<h1 id="加密和解密">加密和解密<a href="#加密和解密" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>假设 Bob 想给 Alice 送一个消息 m；</p>
+<h2 id="公钥和密钥">公钥和密钥<a href="#公钥和密钥" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>在 Alice 端，经过上述的步骤，我们总共得到了 6 个数字，p、q、N、r、e、d；并生成公钥和密钥，公钥就是(𝑁、𝑒)(N、e)组合；秘钥就是(𝑁、𝑑)(N、d)组合；并且 Alice 将公钥发送给 Bob；</p>
+<h2 id="加密过程">加密过程<a href="#加密过程" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>Bob 想给 Alice 送一个消息 M，他拥有 Alice 的公钥，既是 (𝑁、𝑒)(N、e) 。他使用起先与 Alice 约好的编码格式将 M 转换为一个<code>小于</code> 模 <a href="https://www.shangyang.me/2017/05/19/encrypt-rsa-math/#%E6%A8%A1-N">N</a>，且与 N 互质的整数 m；通常，我们传递的是字符串，但是字符可以转换为对应的 ASCII 码值或者 UNICODE 等整数数值；由于转换后的数字必须要小于 N，所以，一般的做法是，将原来的文本切割为很多小份，然后分别加密，将每一段转换为 m 后再传输；</p>
+<p>加密公式，</p>
+<p>𝑐≡𝑚𝑒(mod𝑁)c≡me(modN)</p>
+<p>将 m 转换为加密数值<code>c</code>，然后 Bob 将<code>c</code>传输给 Alice；那么<code>c</code>是如何计算得到的？其实这个求<code>c</code>的过程非常的简单，直接是</p>
+<p>𝑐=𝑚𝑒%𝑁c=me%N</p>
+<p>推导过程，𝑢=𝑚𝑒%𝑁u=me%N，因为 𝑢&lt;𝑁u&lt;N 导出 𝑢=𝑢%𝑁u=u%N 导出 𝑐=𝑢c=u 导出 <strong>余数 u</strong> 既是<code>c</code></p>
+<p><a href="https://l2x.gitbooks.io/understanding-cryptography/docs/chapter-3/rsa.html">https://l2x.gitbooks.io/understanding-cryptography/docs/chapter-3/rsa.html</a></p>
+<h2 id="解密过程">解密过程<a href="#解密过程" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>Alice 拿到 Bob 的加密信息<code>c</code>以后，她使用下面的公式来将<code>c</code>解密得到 m：</p>
+<p>𝑐𝑑≡𝑚(mod𝑁)cd≡m(modN)</p>
+<p>同<a href="https://www.shangyang.me/2017/05/19/encrypt-rsa-math/#%E5%8A%A0%E5%AF%86%E8%BF%87%E7%A8%8B">加密过程</a>求<code>c</code>一样，这里，得出</p>
+<p>𝑚=𝑐𝑑%𝑁m=cd%N</p>
+<p>这里的关键问题是，如何得到的解密方程式 𝑐𝑑≡𝑚(mod𝑁)cd≡m(modN)？</p>
+<h3 id="公式推导">公式推导<a href="#公式推导" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>由加密公式，</p>
+<p>𝑐≡𝑚𝑒(mod𝑁)c≡me(modN)</p>
+<p>通过<a href="https://zh.wikipedia.org/wiki/%E5%90%8C%E9%A4%98">同余</a>的基本运算规则
+<img src="https://www.shangyang.me/2017/05/19/encrypt-rsa-math/tongyu-basic-rule.png" alt="img"></p>
+<p>那么可以得出</p>
+<p>𝑐𝑑≡𝑚𝑒𝑑(mod𝑁)cd≡med(modN)</p>
+<p>下面相关部分摘要自 wikipedia，稍有不同的是，上述过程的原始消息是 m，下面过程的原始消息是 n</p>
+<p><img src="https://www.shangyang.me/2017/05/19/encrypt-rsa-math/decryption-formula-deduce-process-remains.png" alt="img"></p>
+<p>上面推论的重点在于，𝑛(𝑛φ(𝑁))ℎ≡𝑛(1)ℎ(mod𝑁)n(nφ(N))h≡n(1)h(modN) 是怎么导出来的？参考<a href="https://zh.wikipedia.org/wiki/%E6%AC%A7%E6%8B%89%E5%87%BD%E6%95%B0">欧拉定理</a>
+<img src="https://www.shangyang.me/2017/05/19/encrypt-rsa-math/euler-theorem.png" alt="img"></p>
+<p>所以，有 𝑛φ(𝑁)≡1(mod𝑁)nφ(N)≡1(modN)，难道是将 𝑛φ(𝑁)≡1(mod𝑁)nφ(N)≡1(modN) 直接代入 𝑛(𝑛φ(𝑁))ℎn(nφ(N))h，所以得到 𝑛(𝑛φ(𝑁))ℎ≡𝑛(1)ℎ(mod𝑁)n(nφ(N))h≡n(1)h(modN)，除此之外，想不到原因了… 但是在<a href="https://zh.wikipedia.org/wiki/%E5%90%8C%E9%A4%98">同余</a>中没找到这种参数代入法.. 所以会有些怀疑；好吧，姑且给自己有一个悬念吧..</p>
+<p>最终，经过上述的论证，我们得到了解密要用到的公式，</p>
+<p>𝑐𝑑≡𝑚(mod𝑁)cd≡m(modN)</p>
+<p><a href="https://l2x.gitbooks.io/understanding-cryptography/docs/chapter-3/rsa.html">https://l2x.gitbooks.io/understanding-cryptography/docs/chapter-3/rsa.html</a></p>
+<h1 id="例证">例证<a href="#例证" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>上面的原理性的东西说了一堆，这里通过一个实际的例子来看看 RSA 是如何做到加密解密的？</p>
+<p>Bob 试图通过 RSA 的加密的方式向 Alice 发送数据，</p>
+<h2 id="生成密钥">生成密钥<a href="#生成密钥" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>如下步骤描述了 Alice 如何通过 RSA 算法生成自己的密钥(公钥和公钥)；</p>
+<ol>
+<li>
+<p>模 N，Alice 选择两个质数 5、13，得到</p>
+<p>𝑁=5×13=65N=5×13=65</p>
+<p>备注，这里选择的时候一定要注意，之前就是因为错选了不是质数的 9，导致入坑很久没爬出来；</p>
+</li>
+<li>
+<p>欧拉函数值 r</p>
+<p>𝑟=φ(𝑁)=φ(5)φ(13)=(5−1)(13−1)=48r=φ(N)=φ(5)φ(13)=(5−1)(13−1)=48</p>
+</li>
+<li>
+<p>随机数 e，随机选择 e 且 (1&lt;𝑒&lt;𝑟)(1&lt;e&lt;r)，e 必须与 r 互质，这里，我随机选择一个</p>
+<p>𝑒=5e=5</p>
+</li>
+<li>
+<p>求 e 关于 r 的模反元素 d，有公式 𝑒𝑑≡1(mod𝑟)ed≡1(modr) 等价于求解</p>
+<p>5×𝑑≡1(mod48)5×d≡1(mod48)</p>
+<p>按照</p>
+<p>如何计算得到 d</p>
+<p>中所介绍的扩展欧几里得算法，得到公式</p>
+<p>5×𝑑+48𝑘=15×d+48k=1</p>
+<p>，同样也可以按照公式</p>
+<p>5×𝑑−48𝑘=15×d−48k=1</p>
+<p>来进行求解，两者之间的相互区别在</p>
+<p>如何计算得到 d</p>
+<p>有详细的描述；</p>
+<p>为了计算出 d，我按照求解的公式 5×𝑑−48𝑘=15×d−48k=1 写了一段程序来求解 d，从 k = -20 开始，不断的试探出 d 的取值，</p>
+<pre><code>int k = -20;
+   
+int e = 5;
+   
+int r = 48;
+   
+while( true ){
+      
+   int d_mod = (r*k + 1)%e;
+   
+   if( d_mod == 0 ){
+         
+      int d = ( (r*k + 1)/e );
+         
+      System.out.println(&quot;=====&gt; k=&quot;+k+&quot;; d=&quot; + d );
+                     
+      //break;
+         
+   }
+      
+   //System.out.println(&quot;tried k=&quot;+k);       
+      
+   k ++;
+      
+   if( k &gt; 10 ) break;
+      
+}
+</code></pre><p>求得取值范围如下，</p>
+<pre><code>=====&gt; k=-17; d=-163
+=====&gt; k=-12; d=-115
+=====&gt; k=-7; d=-67
+=====&gt; k=-2; d=-19
+=====&gt; k=3; d=29
+=====&gt; k=8; d=77
+</code></pre><p>这里要求取最小正整数的模反元素，所以取得 d = 29，k = 3；因为这里是按照𝑒𝑑−𝑘𝑟=1ed−kr=1的逻辑进行求解，所以，这里 k 的值为正整数 3，如果是按照扩展欧几里得算法的方式𝑒𝑑+𝑘𝑟=1ed+kr=1求解，那么 k = -3</p>
+</li>
+</ol>
+<p>Ok，至此，重要的 6 个元素已经集合完毕，他们分别是 𝑝=5,𝑞=13,𝑁=65,𝑟=48,𝑒=5,𝑑=29p=5,q=13,N=65,r=48,e=5,d=29</p>
+<p>于是，得到<code>公钥</code>为 65,565,5；得到<code>私钥</code>为 65,2965,29；最后 Alice 通过某种方式将<code>公钥</code>发送给 Bob；</p>
+<h2 id="传输加密信息">传输加密信息<a href="#传输加密信息" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>Bob 通过 RSA 加密方式向 Alice 发送字符感叹号 !，</p>
+<p>首先，将字符 ! 转换成其对应的 ASCII 码值，对应为 41，记为 𝑚m</p>
+<p>再次，通过<a href="https://www.shangyang.me/2017/05/19/encrypt-rsa-math/#%E5%8A%A0%E5%AF%86%E8%BF%87%E7%A8%8B">加密公式</a> 𝑐=𝑚𝑒%𝑁c=me%N 既 𝑐=415%65=6c=415%65=6，由此得到 m 的加密后的数字为 𝑐=6c=6；注意，过程中使用到了 (N,e)；备注，这里可用编程的方式求解，</p>
+<pre><code>System.out.println( Math.pow(41,5) % 65);
+</code></pre><p>最后，Bob 将加密数字 c = 6 发送给了 Alice；</p>
+<h2 id="解密加密信息">解密加密信息<a href="#解密加密信息" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>Alice 接收到了 Bob 发送的加密数字 c (6)，之后使用私钥(65, 29)进行解密，</p>
+<p>首先，根据<a href="https://www.shangyang.me/2017/05/19/encrypt-rsa-math/#%E8%A7%A3%E5%AF%86%E8%BF%87%E7%A8%8B">解密公式</a> 𝑚=𝑐𝑑%𝑁m=cd%N 既 𝑚=629%65m=629%65，解出 𝑚=41m=41，正好得到 Bob 未加密之前的字符 ! 的 ASCII 码，因此，这里成功将其解密；备注，这里可以通过编程的方式求解，</p>
+<pre><code>System.out.println( Math.pow(6,29) % 65);
+</code></pre><h1 id="为什么-rsa-很难被破解">为什么 RSA 很难被破解<a href="#为什么-rsa-很难被破解" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>因为要通过密文 c 反推得到明文 m，根据解密方程式 𝑚=𝑐𝑑%𝑁m=cd%N 我们知道，</p>
+<ol>
+<li>在公钥公开的前提下，既是知道 N、e 的前提下，必须要知道 d，才能解密出明文 m；</li>
+<li>而要知道 d，那么就必须对素数模 N 进行<code>因式分解</code>，得到 p 和 q，</li>
+<li>再通过欧拉函数的计算 𝜑(𝑝𝑞)=𝜑(𝑝)𝜑(𝑞)𝜑(pq)=𝜑(p)𝜑(q) 得到 r，</li>
+<li>最后通过 r 和 e，求出 e 于 r 的模反元素的计算才能最终推导出 d；</li>
+</ol>
+<p>而一切的一切的前提都必须对 N 进行因式分解，而如果 N 是一个非常大的素数，因式分解几乎是不可能的；这样，也就保证了 RSA 的加密技术的可靠性；</p>
+<h1 id="使用注意">使用注意<a href="#使用注意" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>可以看到，在加密和解密过程中都会涉及到<code>特大指数级别</code>的运算，所以，运算过程是非常耗费计算机资源和时间的；所以一般的通讯中不直接使用 RSA 来进行加密通讯；而是通过公钥加密一段 DES 密钥来进行通讯，比如 Bob 使用 Alice 的<code>公钥</code>生成一个 DES 对称密钥，然后发送给 Alice，然后 Alice 再使用<code>密钥</code>解密得到 DES 密钥，这样双发最后实际上是通过 DES 密钥在进行通讯；</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://roninzc.github.io/tags/rsa">RSA</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2021-03-03 13:40 &#43;0800</p>
+			</footer>
+		</article>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://roninzc.github.io/posts/rsa/rsa%E4%BA%8C-pkcs-%E5%85%AC%E9%92%A5%E5%8A%A0%E5%AF%86%E6%A0%87%E5%87%86%E7%B3%BB%E5%88%97/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>RSA(二) PKCS 公钥加密标准系列</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+						<script src="https://utteranc.es/client.js"
+							repo="RoninZc/blog"
+							issue-term="pathname"
+							theme="github-light"
+							crossorigin="anonymous"
+							async>
+			</script>
+		</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2020 - 2021 <a href="https://roninzc.github.io">RoninZc</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a>
+			
+		</p>
+	</footer>
+
+
+	<script src="https://roninzc.github.io/js/main.min.3b8561d63aeee77aa04e677df95581a230b4b43adf7b208b8d671433e446cfc1.js"></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-166045776-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

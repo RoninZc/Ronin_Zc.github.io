@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="RSA(六) X.509 CA 证书">
+<meta itemprop="description" content="前言 由前文 RSA(五) PKI (Public Key Infrastructure) 公钥基础设施可知，CA 证书授权中心颁发给用户的是一张 X.509 证书；本篇文章，博主将带领大家一探 X.509 证书的究竟；
+重要：本文为作者的原创作品，转载需注明出处；
+ 转载至https://www.shangyang.me/2017/05/27/encrypt-rsa-selfsigned-certificate/
+ 通过 CSR 申请 X509 CA 证书 这里大致讲解如何申请 X.509 CA 证书的流程，
+ 用户先在本地通过 RSA 生成一对公钥 𝐾𝑝Kp 和密钥 𝐾𝑠Ks， 然后，用户在本地生成一张 𝐶𝑆𝑅CSR 证书，既 Certificate Signing Request  需要填写诸如你的域名，公司名，部门名称，城市名，地区名，国家名，电子邮件等等证明你身份的信息， 添加用户公钥 𝐾𝑝 将上述信息通过 𝐾𝑠 进行签名得到 𝑆𝑐𝑠𝑟 将上述的签名 𝑆𝑐𝑠𝑟、𝐾𝑝 以及身份信息合并成为一张 𝐶𝑆𝑅 证书 ; TODO: 需要合并 𝑆𝑐𝑠𝑟 吗？这个还需要进一步求证……   申请者通过向 CA 中心或者 RA 中心提交 𝐶𝑆𝑅 证书，申请 X.509 证书； 𝐶𝐴 中心用它的密钥 𝐾𝑠(𝑐𝑎)Ks(ca) 对用户提交的 𝐶𝑆𝑅 证书进行签名，将签名和 𝐶𝑆𝑅 合并生成一张 X."><meta itemprop="datePublished" content="2021-03-03T13:46:25&#43;08:00" />
+<meta itemprop="dateModified" content="2021-03-03T13:46:25&#43;08:00" />
+<meta itemprop="wordCount" content="1027">
+<meta itemprop="keywords" content="RSA," /><meta property="og:title" content="RSA(六) X.509 CA 证书" />
+<meta property="og:description" content="前言 由前文 RSA(五) PKI (Public Key Infrastructure) 公钥基础设施可知，CA 证书授权中心颁发给用户的是一张 X.509 证书；本篇文章，博主将带领大家一探 X.509 证书的究竟；
+重要：本文为作者的原创作品，转载需注明出处；
+ 转载至https://www.shangyang.me/2017/05/27/encrypt-rsa-selfsigned-certificate/
+ 通过 CSR 申请 X509 CA 证书 这里大致讲解如何申请 X.509 CA 证书的流程，
+ 用户先在本地通过 RSA 生成一对公钥 𝐾𝑝Kp 和密钥 𝐾𝑠Ks， 然后，用户在本地生成一张 𝐶𝑆𝑅CSR 证书，既 Certificate Signing Request  需要填写诸如你的域名，公司名，部门名称，城市名，地区名，国家名，电子邮件等等证明你身份的信息， 添加用户公钥 𝐾𝑝 将上述信息通过 𝐾𝑠 进行签名得到 𝑆𝑐𝑠𝑟 将上述的签名 𝑆𝑐𝑠𝑟、𝐾𝑝 以及身份信息合并成为一张 𝐶𝑆𝑅 证书 ; TODO: 需要合并 𝑆𝑐𝑠𝑟 吗？这个还需要进一步求证……   申请者通过向 CA 中心或者 RA 中心提交 𝐶𝑆𝑅 证书，申请 X.509 证书； 𝐶𝐴 中心用它的密钥 𝐾𝑠(𝑐𝑎)Ks(ca) 对用户提交的 𝐶𝑆𝑅 证书进行签名，将签名和 𝐶𝑆𝑅 合并生成一张 X." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://roninzc.github.io/posts/rsa/rsa%E5%85%AD-x.509-ca-%E8%AF%81%E4%B9%A6/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-03-03T13:46:25&#43;08:00" />
+<meta property="article:modified_time" content="2021-03-03T13:46:25&#43;08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="RSA(六) X.509 CA 证书"/>
+<meta name="twitter:description" content="前言 由前文 RSA(五) PKI (Public Key Infrastructure) 公钥基础设施可知，CA 证书授权中心颁发给用户的是一张 X.509 证书；本篇文章，博主将带领大家一探 X.509 证书的究竟；
+重要：本文为作者的原创作品，转载需注明出处；
+ 转载至https://www.shangyang.me/2017/05/27/encrypt-rsa-selfsigned-certificate/
+ 通过 CSR 申请 X509 CA 证书 这里大致讲解如何申请 X.509 CA 证书的流程，
+ 用户先在本地通过 RSA 生成一对公钥 𝐾𝑝Kp 和密钥 𝐾𝑠Ks， 然后，用户在本地生成一张 𝐶𝑆𝑅CSR 证书，既 Certificate Signing Request  需要填写诸如你的域名，公司名，部门名称，城市名，地区名，国家名，电子邮件等等证明你身份的信息， 添加用户公钥 𝐾𝑝 将上述信息通过 𝐾𝑠 进行签名得到 𝑆𝑐𝑠𝑟 将上述的签名 𝑆𝑐𝑠𝑟、𝐾𝑝 以及身份信息合并成为一张 𝐶𝑆𝑅 证书 ; TODO: 需要合并 𝑆𝑐𝑠𝑟 吗？这个还需要进一步求证……   申请者通过向 CA 中心或者 RA 中心提交 𝐶𝑆𝑅 证书，申请 X.509 证书； 𝐶𝐴 中心用它的密钥 𝐾𝑠(𝑐𝑎)Ks(ca) 对用户提交的 𝐶𝑆𝑅 证书进行签名，将签名和 𝐶𝑆𝑅 合并生成一张 X."/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>RSA(六) X.509 CA 证书</title>
+	<link rel="stylesheet" href="https://roninzc.github.io/css/style.min.b21595ccbc2181c24e6a019eb9b89ca67727675a14634f9cbdb25e7a4f556601.css">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://roninzc.github.io">RoninZc</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="https://roninzc.github.io/tags/">标签</a>
+					<a href="https://roninzc.github.io/about/">关于</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<span class="hdr-social hide-in-mobile"><a href="https://github.com/RoninZc" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://roninzc.github.io/posts/">文章</a></li>
+			<li><a href="https://roninzc.github.io/tags/">标签</a></li>
+			<li><a href="https://roninzc.github.io/about/">关于</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>3-3, 2021</span></div>
+				<h1>RSA(六) X.509 CA 证书</h1>
+			</header>
+			<div class="content">
+				<h1 id="前言">前言<a href="#前言" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>由前文 <a href="https://www.shangyang.me/2017/05/25/encrypt-rsa-pki/">RSA(五) PKI (Public Key Infrastructure) 公钥基础设施</a>可知，CA 证书授权中心颁发给用户的是一张 <em>X.509 证书</em>；本篇文章，博主将带领大家一探 <em>X.509 证书</em>的究竟；</p>
+<p>重要：本文为作者的原创作品，转载需注明出处；</p>
+<blockquote>
+<p>转载至<code>https://www.shangyang.me/2017/05/27/encrypt-rsa-selfsigned-certificate/</code></p>
+</blockquote>
+<h1 id="通过-csr-申请-x509-ca-证书">通过 CSR 申请 X509 CA 证书<a href="#通过-csr-申请-x509-ca-证书" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>这里大致讲解如何申请 <em>X.509 CA</em> 证书的流程，</p>
+<ol>
+<li>用户先在本地通过 RSA 生成一对公钥 𝐾𝑝Kp 和密钥 𝐾𝑠Ks，</li>
+<li>然后，用户在本地生成一张 𝐶𝑆𝑅CSR 证书，既 <a href="https://en.wikipedia.org/wiki/Certificate_signing_request">Certificate Signing Request</a>
+<ul>
+<li>需要填写诸如你的域名，公司名，部门名称，城市名，地区名，国家名，电子邮件等等证明你身份的信息，</li>
+<li>添加用户公钥 𝐾𝑝</li>
+<li>将上述信息通过 𝐾𝑠 进行签名得到 𝑆𝑐𝑠𝑟</li>
+<li>将上述的签名 𝑆𝑐𝑠𝑟、𝐾𝑝 以及身份信息合并成为一张 𝐶𝑆𝑅 证书 ;
+TODO: 需要合并 𝑆𝑐𝑠𝑟 吗？这个还需要进一步求证……</li>
+</ul>
+</li>
+<li>申请者通过向 CA 中心或者 RA 中心提交 𝐶𝑆𝑅 证书，申请 <em>X.509 证书</em>；</li>
+<li>𝐶𝐴 中心用它的密钥 𝐾𝑠(𝑐𝑎)Ks(ca) 对用户提交的 𝐶𝑆𝑅 证书进行签名，将签名和 𝐶𝑆𝑅 合并生成一张 <em>X.509 证书</em>；详细的签名过程，
+<ul>
+<li>𝐶𝐴 中心通过签名算法(比如 MD5)对 𝐶𝑆𝑅 证书进行签名；</li>
+<li>然后通过 𝐾𝑠(𝑐𝑎)) 对上述的签名进行加密，得到加密后的签名；</li>
+<li>最后，将加密后的签名和用户提交的 𝐶𝑆𝑅合并成为一张 <em>X.509 证书</em>；</li>
+</ul>
+</li>
+<li>最后将该 <em>X.509 证书</em> 颁发给用户；</li>
+</ol>
+<p>备注，如何生成 CSR 证书可以参考 <a href="https://www.sslshopper.com/article-most-common-openssl-commands.html">https://www.sslshopper.com/article-most-common-openssl-commands.html</a></p>
+<h1 id="证书链-certificate-chain">证书链 Certificate Chain<a href="#证书链-certificate-chain" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<h2 id="什么是证书链">什么是证书链<a href="#什么是证书链" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p><em>X.509 证书</em> 中往往不止一张证书，而是由一系列的证书所组成的证书链，通常包含这样三层证书所构成的证书链，</p>
+<p><img src="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/certificate-chain.png" alt="img"></p>
+<ol>
+<li>root certificate，根证书</li>
+<li>intermediates certificates，一系列中间证书</li>
+<li>end-user certificate，终端用户证书</li>
+</ol>
+<p>相信大部分读者会和我一样，迷惑，为什么一张 <em>X.509</em> 证书要搞得这么复杂？</p>
+<p>这样做其实是有历史原因的，那是因为随系统和浏览器预安装的根证书毕竟是有限的，往往就那么些，一旦系统已经发布，大部分用户也已经安装好了，Root Certificate 既根证书就没有办法再通过预安装的方式来进行扩充了；但是我们知道，会有日新月异的新的 CA 公司成立，并被允许授权颁发 <em>X.509</em> 证书，毕竟，我们要允许市场的充分竞争，那么它们的公钥如何预安装到客户端的浏览器和操作系统上呢？如果不能预安装，由前文<a href="https://www.shangyang.me/2017/05/25/encrypt-rsa-pki/#%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E5%85%AC%E9%92%A5%E4%B8%8D%E8%A2%AB%E7%AF%A1%E6%94%B9%E7%9A%84">如何保证公钥不被篡改的</a>分析可知，它们所颁发的证书是不可靠的，是可以被篡改的；那么如何调和这个矛盾呢？该怎么办呢？</p>
+<p>于是，intermediates certificates 中间证书就出现了，这些证书就是表示由 Root Certificate 证书所签名认证的证书，这样，新的 CA 公司所颁发的证书可以由 Root Certificate 进行认证，保证其合法性和可靠性，这样就充分允许了新的 CA 公司成立并参与 CA 这块市场的竞争了；</p>
+<p>下面，就用这么一个形象的例子来描述，比如，有一天，中国成立了一家 ShangYang 公司，该公司的主营业务就是为广大客户进行证书授权，参与 CA 领域的商业竞争；那么这个时候呢，我需要向掌管 Root Certificate 的机构提交申请，请它签名我的 CA 公钥 (说好的市场充分竞争呢？Root Certificate 机构不就是赤裸裸的垄断机构？谁知道呢..)，生成一张 intermediates certificate 中间证书；这样，由 ShangYang 公司所签名的证书就得到了 Root Certificate 的认证，那么由该公司所颁发的 <em>X.509</em> 证书就是合法，正规的了；</p>
+<p>由此，我们也能够大致知道整个证书链的验证过程了，证书链的验证过程将会在后续<a href="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/#%E8%AF%81%E4%B9%A6%E9%93%BE%E7%9A%84%E9%AA%8C%E8%AF%81%E8%BF%87%E7%A8%8B">证书链的验证过程</a>进行详细的描述；</p>
+<p>总结一下，</p>
+<p>根证书是被预装到客户端电脑或者用户其它终端设备上的(比如手机)，它的作用主要是验证 CA 证书签名的合法性，也就是保证 CA 的证书(含 CA 的公钥)的合法性；最后，end-user certificate 终端用户证书，该证书由 CA 的证书保证其合法性；所以，可以看到，各个证书的验证过程是一环扣一环的，根证书验证 CA 证书的合法性，CA 证书验证用户证书的合法性；</p>
+<h2 id="证书链中每个证书所包含的内容">证书链中每个证书所包含的内容<a href="#证书链中每个证书所包含的内容" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>我们来看看 wikipedia.org 的 <em>X.509</em> 证书的情况，他是由 GlobalSign 机构颁发的，</p>
+<h3 id="end-user或-end-entity-certificate-既终端用户证书">End-user(或 End-entity) certificate 既终端用户证书<a href="#end-user或-end-entity-certificate-既终端用户证书" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<pre><code>Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            10:e6:fc:62:b7:41:8a:d5:00:5e:45:b6
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=BE, O=GlobalSign nv-sa, CN=GlobalSign Organization Validation CA - SHA256 - G2
+        Validity
+            Not Before: Nov 21 08:00:00 2016 GMT
+            Not After : Nov 22 07:59:59 2017 GMT
+        Subject: C=US, ST=California, L=San Francisco, O=Wikimedia Foundation, Inc., CN=*.wikipedia.org
+        Subject Public Key Info:
+            Public Key Algorithm: id-ecPublicKey
+                Public-Key: (256 bit)
+                pub: 
+                    04:c9:22:69:31:8a:d6:6c:ea:da:c3:7f:2c:ac:a5:
+                    af:c0:02:ea:81:cb:65:b9:fd:0c:6d:46:5b:c9:1e:
+                    ed:b2:ac:2a:1b:4a:ec:80:7b:e7:1a:51:e0:df:f7:
+                    c7:4a:20:7b:91:4b:20:07:21:ce:cf:68:65:8c:c6:
+                    9d:3b:ef:d5:c1
+                ASN1 OID: prime256v1
+                NIST CURVE: P-256
+        X509v3 extensions:
+            X509v3 Key Usage: critical
+                Digital Signature, Key Agreement
+            Authority Information Access: 
+                CA Issuers - URI:http://secure.globalsign.com/cacert/gsorganizationvalsha2g2r1.crt
+                OCSP - URI:http://ocsp2.globalsign.com/gsorganizationvalsha2g2
+
+            X509v3 Certificate Policies: 
+                Policy: 1.3.6.1.4.1.4146.1.20
+                  CPS: https://www.globalsign.com/repository/
+                Policy: 2.23.140.1.2.2
+
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            X509v3 CRL Distribution Points: 
+
+                Full Name:
+                  URI:http://crl.globalsign.com/gs/gsorganizationvalsha2g2.crl
+
+            X509v3 Subject Alternative Name: 
+                DNS:*.wikipedia.org, DNS:*.m.mediawiki.org, DNS:*.m.wikibooks.org, DNS:*.m.wikidata.org, DNS:*.m.wikimedia.org, DNS:*.m.wikimediafoundation.org, DNS:*.m.wikinews.org, DNS:*.m.wikipedia.org, DNS:*.m.wikiquote.org, DNS:*.m.wikisource.org, DNS:*.m.wikiversity.org, DNS:*.m.wikivoyage.org, DNS:*.m.wiktionary.org, DNS:*.mediawiki.org, DNS:*.planet.wikimedia.org, DNS:*.wikibooks.org, DNS:*.wikidata.org, DNS:*.wikimedia.org, DNS:*.wikimediafoundation.org, DNS:*.wikinews.org, DNS:*.wikiquote.org, DNS:*.wikisource.org, DNS:*.wikiversity.org, DNS:*.wikivoyage.org, DNS:*.wiktionary.org, DNS:*.wmfusercontent.org, DNS:*.zero.wikipedia.org, DNS:mediawiki.org, DNS:w.wiki, DNS:wikibooks.org, DNS:wikidata.org, DNS:wikimedia.org, DNS:wikimediafoundation.org, DNS:wikinews.org, DNS:wikiquote.org, DNS:wikisource.org, DNS:wikiversity.org, DNS:wikivoyage.org, DNS:wiktionary.org, DNS:wmfusercontent.org, DNS:wikipedia.org
+            X509v3 Extended Key Usage: 
+                TLS Web Server Authentication, TLS Web Client Authentication
+            X509v3 Subject Key Identifier: 
+                28:2A:26:2A:57:8B:3B:CE:B4:D6:AB:54:EF:D7:38:21:2C:49:5C:36
+            X509v3 Authority Key Identifier: 
+                keyid:96:DE:61:F1:BD:1C:16:29:53:1C:C0:CC:7D:3B:83:00:40:E6:1A:7C
+
+    Signature Algorithm: sha256WithRSAEncryption
+         8b:c3:ed:d1:9d:39:6f:af:40:72:bd:1e:18:5e:30:54:23:35:
+         ...
+</code></pre><p>上面这张证书就是 wikipedia.org 的终端用户证书了，看看几个关键的属性</p>
+<ol>
+<li>
+<p>Subject</p>
+<pre><code>Subject: C=US, ST=California, L=San Francisco, O=Wikimedia Foundation, Inc., CN=*.wikipedia.org
+</code></pre><p>可以看到该证书的主体结构，表示该证书的主体机构是 wikipedia.org，以及相关的一些附属信息，比如国家，地域，公司名称等等；</p>
+</li>
+<li>
+<p>Subject Alternative Name
+表述了该证书还可以用在哪些域名上，这里定义了好些其它的可用域名的验证上，</p>
+<pre><code>X509v3 Subject Alternative Name: 
+  DNS:*.wikipedia.org, DNS:*.m.mediawiki.org, DNS:*.m.wikibooks.org, DNS:*.m.wikidata.org, DNS:*.m.wikimedia.org, DNS:*.m.wikimediafoundation.org, DNS:*.m.wikinews.org, DNS:*.m.wikipedia.org, DNS:*.m.wikiquote.org, DNS:*.m.wikisource.org, DNS:*.m.wikiversity.org, DNS:*.m.wikivoyage.org, DNS:*.m.wiktionary.org, DNS:*.mediawiki.org, DNS:*.planet.wikimedia.org, DNS:*.wikibooks.org, DNS:*.wikidata.org, DNS:*.wikimedia.org, DNS:*.wikimediafoundation.org, DNS:*.wikinews.org, DNS:*.wikiquote.org, DNS:*.wikisource.org, DNS:*.wikiversity.org, DNS:*.wikivoyage.org, DNS:*.wiktionary.org, DNS:*.wmfusercontent.org, DNS:*.zero.wikipedia.org, DNS:mediawiki.org, DNS:w.wiki, DNS:wikibooks.org, DNS:wikidata.org, DNS:wikimedia.org, DNS:wikimediafoundation.org, DNS:wikinews.org, DNS:wikiquote.org, DNS:wikisource.org, DNS:wikiversity.org, DNS:wikivoyage.org, DNS:wiktionary.org, DNS:wmfusercontent.org, DNS:wikipedia.org
+</code></pre></li>
+<li>
+<p>Subject Public Key</p>
+<pre><code>Subject Public Key Info:
+    Public Key Algorithm: id-ecPublicKey
+        Public-Key: (256 bit)
+        pub: 
+            04:c9:22:69:31:8a:d6:6c:ea:da:c3:7f:2c:ac:a5:
+            af:c0:02:ea:81:cb:65:b9:fd:0c:6d:46:5b:c9:1e:
+            ed:b2:ac:2a:1b:4a:ec:80:7b:e7:1a:51:e0:df:f7:
+            c7:4a:20:7b:91:4b:20:07:21:ce:cf:68:65:8c:c6:
+            9d:3b:ef:d5:c1
+        ASN1 OID: prime256v1
+        NIST CURVE: P-256
+</code></pre><p>这就是终端用户的公钥信息了，注意，这里的公钥并不是采用的 RSA 算法，而是采用的 DSA 算法，具体可参考 <a href="https://en.wikipedia.org/wiki/ECDSA">ECDSA</a>；</p>
+</li>
+<li>
+<p>Signature Algorithm
+这部分内容表示所用的签名算法以及被 CA 中心签名后的内容，</p>
+<pre><code>Signature Algorithm: sha256WithRSAEncryption
+    8b:c3:ed:d1:9d:39:6f:af:40:72:bd:1e:18:5e:30:54:23:35:
+</code></pre><p>可以看到，该签名算法是采用的 SHA256 算法，并通过 RSA 加密(这里是通过 CA 的私钥加密)，所以这里得到的其实是被 CA 私钥加密后的 SHA 签名；后面对应 <em>8b:c3:ed:d1:9d:39:6f:af:40:72:bd:1e:18:5e:30:54:23:35:</em> 就是该加密后的签名；</p>
+</li>
+</ol>
+<p>从前面的系列文章 <a href="https://www.shangyang.me/2017/05/25/encrypt-rsa-pki/">RSA(五) PKI (Public Key Infrastructure) 公钥基础设施</a>我们知道，终端用户公钥签名是需要被相关的 CA 证书验证的(既是通过 CA 的公钥进行解密验证)；那么它是如何找到对应的 CA 证书并进行验证的呢？通过终端用户证书中的两个字段；</p>
+<ol>
+<li>
+<p>Issuer</p>
+<pre><code>Issuer: C=BE, O=GlobalSign nv-sa, CN=GlobalSign Organization Validation CA - SHA256 - G2
+</code></pre><p>可以明显的看到，该用户终端证书是由 <strong>GlobalSign</strong> 𝐶𝐴CA 中心进行验证并签发的。</p>
+</li>
+<li>
+<p>Authority Key Identifier</p>
+<pre><code>X509v3 Authority Key Identifier: 
+           keyid:96:DE:61:F1:BD:1C:16:29:53:1C:C0:CC:7D:3B:83:00:40:E6:1A:7C
+</code></pre><p>𝐶𝐴中心的身份 𝐼𝐷</p>
+</li>
+</ol>
+<p>那顾名思义，终端用户证书将会找到与 <em>Issuer</em> 和 <em>Authority Key Identifier</em> 两者都匹配的 𝐶𝐴 证书来对它进行验证；好了，接下来，我们看看 𝐶𝐴 证书长什么样，也就是 <em>Intermediate certificate</em>；</p>
+<h3 id="intermediate-certificate-既-ca-证书">Intermediate certificate 既 CA 证书<a href="#intermediate-certificate-既-ca-证书" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<pre><code>Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            04:00:00:00:00:01:44:4e:f0:42:47
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=BE, O=GlobalSign nv-sa, OU=Root CA, CN=GlobalSign Root CA
+        Validity
+            Not Before: Feb 20 10:00:00 2014 GMT
+            Not After : Feb 20 10:00:00 2024 GMT
+        Subject: C=BE, O=GlobalSign nv-sa, CN=GlobalSign Organization Validation CA - SHA256 - G2
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:c7:0e:6c:3f:23:93:7f:cc:70:a5:9d:20:c3:0e:
+                    ...
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Key Usage: critical
+                Certificate Sign, CRL Sign
+            X509v3 Basic Constraints: critical
+                CA:TRUE, pathlen:0
+            X509v3 Subject Key Identifier:
+                96:DE:61:F1:BD:1C:16:29:53:1C:C0:CC:7D:3B:83:00:40:E6:1A:7C
+            X509v3 Certificate Policies:
+                Policy: X509v3 Any Policy
+                  CPS: https://www.globalsign.com/repository/
+
+            X509v3 CRL Distribution Points:
+
+                Full Name:
+                  URI:http://crl.globalsign.net/root.crl
+
+            Authority Information Access:
+                OCSP - URI:http://ocsp.globalsign.com/rootr1
+
+            X509v3 Authority Key Identifier:
+                keyid:60:7B:66:1A:45:0D:97:CA:89:50:2F:7D:04:CD:34:A8:FF:FC:FD:4B
+
+    Signature Algorithm: sha256WithRSAEncryption
+         46:2a:ee:5e:bd:ae:01:60:37:31:11:86:71:74:b6:46:49:c8:
+         ...
+</code></pre><p><em>Intermidate certificate</em> 既是 𝐶𝐴 证书，是用来验证用户终端证书(既 <em>End-entity certificate</em>)的；通过两个字段来匹配用户终端证书，</p>
+<ul>
+<li>
+<p>𝐶𝐴 证书中的 <em>Issuer</em> 和用户终端证书中的 <em>Issuer</em> 相匹配</p>
+</li>
+<li>
+<p>𝐶𝐴</p>
+<p>证书中的</p>
+<p>Subject Key Identifier</p>
+<p>与用户终端证书中的</p>
+<p>Authority Key Identifier</p>
+<p>相匹配；</p>
+<pre><code>X509v3 Subject Key Identifier:
+              96:DE:61:F1:BD:1C:16:29:53:1C:C0:CC:7D:3B:83:00:40:E6:1A:7C
+</code></pre></li>
+</ul>
+<p>与 𝐶𝐴 证书相匹配的用户终端证书将会被该 𝐶𝐴 证书所验证；</p>
+<h3 id="root-certificate-既根证书">Root Certificate 既根证书<a href="#root-certificate-既根证书" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<pre><code>Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            04:00:00:00:00:01:15:4b:5a:c3:94
+    Signature Algorithm: sha1WithRSAEncryption
+        Issuer: C=BE, O=GlobalSign nv-sa, OU=Root CA, CN=GlobalSign Root CA
+        Validity
+            Not Before: Sep  1 12:00:00 1998 GMT
+            Not After : Jan 28 12:00:00 2028 GMT
+        Subject: C=BE, O=GlobalSign nv-sa, OU=Root CA, CN=GlobalSign Root CA
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:da:0e:e6:99:8d:ce:a3:e3:4f:8a:7e:fb:f1:8b:
+                    ...
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Key Usage: critical
+                Certificate Sign, CRL Sign
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+            X509v3 Subject Key Identifier: 
+                60:7B:66:1A:45:0D:97:CA:89:50:2F:7D:04:CD:34:A8:FF:FC:FD:4B
+    Signature Algorithm: sha1WithRSAEncryption
+         d6:73:e7:7c:4f:76:d0:8d:bf:ec:ba:a2:be:34:c5:28:32:b5:
+         ...
+</code></pre><p><em>Intermediate certificate</em> 既是 𝐶𝐴 证书将会被 <em>Root certificate</em> 进行验证，并且 <em>Root certificate</em> 是证书验证链中的最后一环，所以的验证将会到此为止；那么 𝐶𝐴 证书又是如何找到对应的 <em>Root certificate</em> 进行验证的呢？主要通过如下的规则进行匹配</p>
+<ol>
+<li>𝐶𝐴 证书中的 <em>Issuer</em> 需要与 <em>Root certificate</em> 中的 <em>Issuer</em> 匹配</li>
+<li>𝐶𝐴 证书中的 <em>Authority Key Identifier</em> 字段需要与 <em>Root certificate</em> 证书中的 <em>Subject Key Identifier</em> 字段相匹配</li>
+</ol>
+<p>这样，与之匹配的 𝐶𝐴 证书将会由该 <em>Root certificate</em> 证书进行验证；</p>
+<p>最后，需要强调的是，𝐶𝐴 证书并不会随浏览器和系统的安装而预安装到用户的设备上，<code>被预安装到用户设备上的只有 Root certificate</code>；这样呢，就保证了终端用户的公钥的可靠性和安全性；另外，通过 <em>Root certificate</em> 会被安装到系统的 <a href="https://en.wikipedia.org/wiki/Public_key_certificate#Root_programs">trust store</a>中，主流的有</p>
+<ul>
+<li><a href="https://technet.microsoft.com/en-us/library/cc751157.aspx">Microsoft Root Program</a></li>
+<li><a href="https://www.apple.com/certificateauthority/ca_program.html">Apple Root Program</a></li>
+<li><a href="https://www.mozilla.org/en-US/about/governance/policies/security-group/certs/policy/">Mozilla Root Program</a></li>
+<li><a href="http://www.oracle.com/technetwork/java/javase/javasecarootcertsprogram-1876540.html">Oracle Java root program</a></li>
+<li>Adobe <a href="https://helpx.adobe.com/acrobat/kb/approved-trust-list2.html">AATL</a> and <a href="https://blogs.adobe.com/documentcloud/eu-trusted-list-now-available-in-adobe-acrobat/">EUTL</a> root programs (used for document signing)</li>
+</ul>
+<p>后续有时间的话，准备对 Java 的 trust store 进行一下梳理和介绍；</p>
+<h2 id="证书链的验证过程">证书链的验证过程<a href="#证书链的验证过程" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>有了上述分析以后，证书链的验证过程就显而易见了</p>
+<ul>
+<li>End-user certificate 通过 𝐶𝐴 证书进行验证</li>
+<li>𝐶𝐴 证书经过 Root certificate 证书进行验证</li>
+<li>完毕</li>
+</ul>
+<h1 id="实践">实践<a href="#实践" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>那么这里作者带领大家通过 CSR 的方式申请一个免费的 CA 证书，现在通过阿里云可以免费申请一个固定域名的 Symantec 的 CA 证书；</p>
+<ol>
+<li>
+<p>登录阿里云产品中心，选择安全 -&gt; CA 证书<img src="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/apply-ca-how-step-1.png" alt="img"></p>
+</li>
+<li>
+<p>然后选择免费的 DV 类型的证书<img src="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/apply-ca-how-step-2.png" alt="img"></p>
+</li>
+<li>
+<p>购买好了以后，进入管理后台管理，进入安全（云盾）-&gt; 证书服务，然后对证书进行补全<img src="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/apply-ca-how-step-3.png" alt="img">补全既是需要用户自己提交 CSR 申请证书；</p>
+</li>
+<li>
+<p>填写域名信息，注意，这里只能绑定一个唯一的域名，且不能写任何的通配符<img src="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/apply-ca-how-step-4.png" alt="img"></p>
+</li>
+<li>
+<p>下一步将会填写一些个人信息，比如姓名、手机号码、地址等<img src="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/apply-ca-how-step-5.png" alt="img">这里要强调的是，阿里云需要验证域名的归属，既验证该域名的确归你所有；可以通过 DNS 和 文件 的两种方式进行验证；这里呢，我选择的是通过 DNS 验证，验证的大致过程是，阿里会向你的申请邮箱中发送一份邮件，邮件的内容中包含了如何验证域名的方法，里面包含一条用于验证的 TXT 记录，这个需要到个人域名管理中心去配置 TXT 转发规则即可；</p>
+</li>
+<li>
+<p>好了，这一步是关键了，这里有两个选项，由系统生成 CSR 或者自己生成 CSR，这里为了演示自提交 CSR 证书申请的方式，所以，我们选择自己生成 CSR<img src="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/apply-ca-how-step-6.png" alt="img"></p>
+</li>
+<li>
+<p>使用 openssl 命令生成 CSR</p>
+<pre><code>$ openssl req -out CSR.csr -new -newkey rsa:2048 -nodes -keyout private.key
+</code></pre><p>然后提示输入国家、地址、姓名、域名、邮箱等等信息；如果是为公司申请邮箱，那么这里填写公司相关信息即可；这里<code>尤其</code>要<code>注意</code>的是，在输入域名的时候，必须与第 4 步的域名相匹配，否则第 9 步审核不能通过，输入域名的时候，提示输入 <em>Common Name (e.g. server FQDN or YOUR name) []</em> 的信息；最后会在本地生成两个文件，CSR.csr 和 private.key</p>
+</li>
+<li>
+<p>用文本编辑器打开 CSR.csr，可以看到大致内容如下</p>
+<pre><code>-----BEGIN CERTIFICATE REQUEST-----
+MIIC3DCCAcQCAQAwgZYxCzAJBgNVBAYTAkNOMRAwDgYDVQQIEwdTaWNodWFuMRAw
+DgYDVQQHEwdDaGVuZ2R1MRQwEgYDVQQKEwtIdWlSb25nWGluZzEUMBIGA1UECxML
+SHVpUm9uZ1hpbmcxFDASBgNVBAMTC0h1aVJvbmdYaW5nMSEwHwYJKoZIhvcNAQkB
+FhJodWlyb25neGluZ0BocnguYWkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+AoIBAQC7MY7hTjbv7DkGoDTmvQ2toAe8nMTlQGPh+r4VvD+zzEiEudFPEI1cIFLr
+BLTfSyn9Awv7lgIjhJ4ghDkjAGwHnrTxzvldjfZkpKuBK9H8Vy2t7sorgoxEBF7j
+VbiiTBtSG6+ZNw8esqt5EECT19aP/RyJp65f8lysHwcHmZmVGaDq/VwQcbyuI6Vs
+ko/7sSchOAgUWn66oS+xw7mGYR212mQv6Bz0g0L1NVep8Doz8O2pWPHT1ZOdpBDU
+rzJJxHXzUgKVgYsAgMBAAGgADANBgkqhkiG9w0BAQUFAAOCAQEA
+V6rSXeGO4Z0q2sZ9gbdUBmpQ8AAdloByhd1BcwHuHt/nfPj59L3CT3EnTEez7cDt
+RUCbI2FbThBFfjngfTNE3PjsTsheCdAxoV6yRPo7Fpb5AKkhXDra1jjVjsY0maFl
+N23okpDCMzmUD2peKqumYhdHBw8wB3Y5HZQxxq688DwlHn0bLnylUPk/hDfuMzIs
+5vLIyDSGQiCwq9sU8wjhQOXqzZ37FgJcZ8GyvaJ3kUWDlLDPIGMiXQ0p4T39/ZaE
+my/C0JxSLiAKJs3L2f7HfKwUoRZDDnCS0WMdQunvxC4Dd7hyddCij6E1ExnT7EzC
+kiPq8xiGl2HRGW/JfWC3XA==
+-----END CERTIFICATE REQUEST-----
+</code></pre><p>可以看到，是一个经过 Base64 编码的 PEM 格式的内容；</p>
+</li>
+<li>
+<p>将上述内容复制，粘贴到阿里证书服务页面，点击保存<img src="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/apply-ca-how-step-7.png" alt="img">注意第 7 步的描述，必须保证 CSR 中的域名地址与第 4 步申请的时候填写的域名地址相匹配才行；</p>
+</li>
+<li>
+<p>验证域名的归属
+由于第 5 步中，作者是选择的 DNS 验证的方式，所以，第 9 步完成以后，阿里会发送一封邮件包含需要验证的 TXT 记录值，这里只需要到域名管理中心配置一下 TXT 值，即可验证通过；域名管理中心配置好了以后，大致内容如下，<img src="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/apply-ca-how-step-9.png" alt="img">不过，有时候，邮件迟迟不发送，这个时候，你可以直接点击<code>进度</code>按钮，也可以显示相关的 TXT 记录；<img src="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/apply-ca-how-step-8.png" alt="img"></p>
+</li>
+<li>
+<p>申请成功，当验证通过以后，状态便会变为<code>已签发</code><img src="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/apply-ca-how-step-10.png" alt="img">这个时候，你就可以在证书管理后台中去下载该 CA 证书了..</p>
+</li>
+</ol>
+<p>All done…</p>
+<p>后记于 2018-01-30 1:21 pm
+阿里云上验证域名归属的步骤有变化，也就是上面的第 10 步，在添加主机记录的时候前面要加上 _dnsauth 前缀才行，如图
+<img src="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/apply-ca-how-step-10-2.png" alt="apply-ca-how-step-10-2.png">
+并且不再发邮件提示配置知己记录 TXT 值了；对应的域名配置如下，
+<img src="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/apply-ca-how-step-10-3.png" alt="apply-ca-how-step-10-3.png"></p>
+<p>更多详情参考 <a href="https://bbs.aliyun.com/read/573056.html?spm=a2c4e.11155515.0.0.kL3FVf">https://bbs.aliyun.com/read/573056.html?spm=a2c4e.11155515.0.0.kL3FVf</a></p>
+<h1 id="后续">后续<a href="#后续" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>这里主要讲解的是通过 𝐶𝐴 签名的证书，那如果，只是内网服务器，不需要连接外网，那么，实际上，我也就用不到这种公共的基础设施来保证我的证书的合法性；这个时候，X.509 证书还提供了一种自签名证书，什么意思呢？就是说，你可以自己生成 <em>Root certificate</em>，然后将它加入你本机的 trust store 中，用它来验证你的证书的合法性，这就是自签名证书了；详情参考</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://roninzc.github.io/tags/rsa">RSA</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2021-03-03 13:46 &#43;0800</p>
+			</footer>
+		</article>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://roninzc.github.io/posts/rsa/rsa%E4%B8%83-x.509-%E8%87%AA%E7%AD%BE%E5%90%8D%E8%AF%81%E4%B9%A6/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>RSA(七) X.509 自签名证书</span>
+			</a>
+			<a class="prev-post" href="https://roninzc.github.io/posts/rsa/rsa%E4%BA%94-pki-public-key-infrastructure-%E5%85%AC%E9%92%A5%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>RSA(五) PKI (Public Key Infrastructure) 公钥基础设施</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+						<script src="https://utteranc.es/client.js"
+							repo="RoninZc/blog"
+							issue-term="pathname"
+							theme="github-light"
+							crossorigin="anonymous"
+							async>
+			</script>
+		</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2020 - 2021 <a href="https://roninzc.github.io">RoninZc</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a>
+			
+		</p>
+	</footer>
+
+
+	<script src="https://roninzc.github.io/js/main.min.3b8561d63aeee77aa04e677df95581a230b4b43adf7b208b8d671433e446cfc1.js"></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-166045776-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

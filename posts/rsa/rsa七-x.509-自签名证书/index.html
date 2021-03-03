@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="RSA(七) X.509 自签名证书">
+<meta itemprop="description" content="前言 继前文RSA(六) X.509 CA 证书 所述，X.509 CA 证书是由 𝐶𝐴CA 认证中心签名并颁发的；但是最后，作者留下了这么一个疑问，就是如果在企业内网，我同样需要对公钥进行认证，但是因为不需要连接外网，所以并不需要 𝐶𝐴CA 证书(因为，𝐶𝐴CA 证书毕竟开销不菲)；那么是否有这样的一种可替代的方案，在不使用 𝐶𝐴CA 证书的前提下，能否保证公钥的合法性？答案是自签名证书；
+备注，本文是作者的原创作品，转载请注明出处。
+ 转载至https://www.shangyang.me/2017/05/27/encrypt-rsa-selfsigned-certificate/
+ 定义 看下 wikipedia https://en.wikipedia.org/wiki/Self-signed_certificate 上的最重要的一段解释
+ In technical terms a self-signed certificate is one signed with its own private key.
+ 自签名证书说穿了，就是一个由自己的私钥进行签名的证书；
+与 CA 证书的区别 通过 RSA(六) X.509 CA 证书 章节我们知道，要保证公钥的合法性，我们需要把自己的公钥交给第三方 𝐶𝐴CA 机构，通过它的私钥来进行签名，并生成一张 𝐶𝐴CA 证书并颁发给用户；而与 𝐶𝐴CA 证书相对应的就是自签名证书，也就是说，我自己的公钥不交给第三方的 𝐶𝐴CA 机构进行签名，而是直接由自己的私钥进行签名，并生成一张自签名的证书；
+如何生成 这里我主要讲解一下，如果通过 openssl 来生成自签名的证书，
+$ openssl req \ &gt; -newkey rsa:2048 -nodes -keyout private."><meta itemprop="datePublished" content="2021-03-03T13:47:25&#43;08:00" />
+<meta itemprop="dateModified" content="2021-03-03T13:47:25&#43;08:00" />
+<meta itemprop="wordCount" content="411">
+<meta itemprop="keywords" content="RSA," /><meta property="og:title" content="RSA(七) X.509 自签名证书" />
+<meta property="og:description" content="前言 继前文RSA(六) X.509 CA 证书 所述，X.509 CA 证书是由 𝐶𝐴CA 认证中心签名并颁发的；但是最后，作者留下了这么一个疑问，就是如果在企业内网，我同样需要对公钥进行认证，但是因为不需要连接外网，所以并不需要 𝐶𝐴CA 证书(因为，𝐶𝐴CA 证书毕竟开销不菲)；那么是否有这样的一种可替代的方案，在不使用 𝐶𝐴CA 证书的前提下，能否保证公钥的合法性？答案是自签名证书；
+备注，本文是作者的原创作品，转载请注明出处。
+ 转载至https://www.shangyang.me/2017/05/27/encrypt-rsa-selfsigned-certificate/
+ 定义 看下 wikipedia https://en.wikipedia.org/wiki/Self-signed_certificate 上的最重要的一段解释
+ In technical terms a self-signed certificate is one signed with its own private key.
+ 自签名证书说穿了，就是一个由自己的私钥进行签名的证书；
+与 CA 证书的区别 通过 RSA(六) X.509 CA 证书 章节我们知道，要保证公钥的合法性，我们需要把自己的公钥交给第三方 𝐶𝐴CA 机构，通过它的私钥来进行签名，并生成一张 𝐶𝐴CA 证书并颁发给用户；而与 𝐶𝐴CA 证书相对应的就是自签名证书，也就是说，我自己的公钥不交给第三方的 𝐶𝐴CA 机构进行签名，而是直接由自己的私钥进行签名，并生成一张自签名的证书；
+如何生成 这里我主要讲解一下，如果通过 openssl 来生成自签名的证书，
+$ openssl req \ &gt; -newkey rsa:2048 -nodes -keyout private." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://roninzc.github.io/posts/rsa/rsa%E4%B8%83-x.509-%E8%87%AA%E7%AD%BE%E5%90%8D%E8%AF%81%E4%B9%A6/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-03-03T13:47:25&#43;08:00" />
+<meta property="article:modified_time" content="2021-03-03T13:47:25&#43;08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="RSA(七) X.509 自签名证书"/>
+<meta name="twitter:description" content="前言 继前文RSA(六) X.509 CA 证书 所述，X.509 CA 证书是由 𝐶𝐴CA 认证中心签名并颁发的；但是最后，作者留下了这么一个疑问，就是如果在企业内网，我同样需要对公钥进行认证，但是因为不需要连接外网，所以并不需要 𝐶𝐴CA 证书(因为，𝐶𝐴CA 证书毕竟开销不菲)；那么是否有这样的一种可替代的方案，在不使用 𝐶𝐴CA 证书的前提下，能否保证公钥的合法性？答案是自签名证书；
+备注，本文是作者的原创作品，转载请注明出处。
+ 转载至https://www.shangyang.me/2017/05/27/encrypt-rsa-selfsigned-certificate/
+ 定义 看下 wikipedia https://en.wikipedia.org/wiki/Self-signed_certificate 上的最重要的一段解释
+ In technical terms a self-signed certificate is one signed with its own private key.
+ 自签名证书说穿了，就是一个由自己的私钥进行签名的证书；
+与 CA 证书的区别 通过 RSA(六) X.509 CA 证书 章节我们知道，要保证公钥的合法性，我们需要把自己的公钥交给第三方 𝐶𝐴CA 机构，通过它的私钥来进行签名，并生成一张 𝐶𝐴CA 证书并颁发给用户；而与 𝐶𝐴CA 证书相对应的就是自签名证书，也就是说，我自己的公钥不交给第三方的 𝐶𝐴CA 机构进行签名，而是直接由自己的私钥进行签名，并生成一张自签名的证书；
+如何生成 这里我主要讲解一下，如果通过 openssl 来生成自签名的证书，
+$ openssl req \ &gt; -newkey rsa:2048 -nodes -keyout private."/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>RSA(七) X.509 自签名证书</title>
+	<link rel="stylesheet" href="https://roninzc.github.io/css/style.min.b21595ccbc2181c24e6a019eb9b89ca67727675a14634f9cbdb25e7a4f556601.css">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://roninzc.github.io">RoninZc</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="https://roninzc.github.io/tags/">标签</a>
+					<a href="https://roninzc.github.io/about/">关于</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<span class="hdr-social hide-in-mobile"><a href="https://github.com/RoninZc" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://roninzc.github.io/posts/">文章</a></li>
+			<li><a href="https://roninzc.github.io/tags/">标签</a></li>
+			<li><a href="https://roninzc.github.io/about/">关于</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>3-3, 2021</span></div>
+				<h1>RSA(七) X.509 自签名证书</h1>
+			</header>
+			<div class="content">
+				<h1 id="前言">前言<a href="#前言" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>继前文<a href="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/">RSA(六) X.509 CA 证书</a> 所述，<em>X.509 CA</em> 证书是由 𝐶𝐴CA 认证中心签名并颁发的；但是最后，作者留下了这么一个疑问，就是如果在企业内网，我同样需要对公钥进行认证，但是因为不需要连接外网，所以并不需要 𝐶𝐴CA 证书(因为，𝐶𝐴CA 证书毕竟开销不菲)；那么是否有这样的一种可替代的方案，在不使用 𝐶𝐴CA 证书的前提下，能否保证公钥的合法性？答案是<code>自签名证书</code>；</p>
+<p>备注，本文是作者的原创作品，转载请注明出处。</p>
+<blockquote>
+<p>转载至<code>https://www.shangyang.me/2017/05/27/encrypt-rsa-selfsigned-certificate/</code></p>
+</blockquote>
+<h1 id="定义">定义<a href="#定义" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>看下 wikipedia <a href="https://en.wikipedia.org/wiki/Self-signed_certificate">https://en.wikipedia.org/wiki/Self-signed_certificate</a> 上的最重要的一段解释</p>
+<blockquote>
+<p>In technical terms a self-signed certificate is one signed with its own private key.</p>
+</blockquote>
+<p>自签名证书说穿了，就是一个由自己的私钥进行签名的证书；</p>
+<h1 id="与-ca-证书的区别">与 CA 证书的区别<a href="#与-ca-证书的区别" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>通过 <a href="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/">RSA(六) X.509 CA 证书</a> 章节我们知道，要保证公钥的合法性，我们需要把自己的公钥交给第三方 𝐶𝐴CA 机构，通过它的私钥来进行签名，并生成一张 𝐶𝐴CA 证书并颁发给用户；而与 𝐶𝐴CA 证书相对应的就是自签名证书，也就是说，我自己的公钥不交给第三方的 𝐶𝐴CA 机构进行签名，而是直接由自己的私钥进行签名，并生成一张自签名的证书；</p>
+<h1 id="如何生成">如何生成<a href="#如何生成" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>这里我主要讲解一下，如果通过 <em>openssl</em> 来生成自签名的证书，</p>
+<pre><code>$ openssl req \
+&gt;        -newkey rsa:2048 -nodes -keyout private.key \
+&gt;        -x509 -days 365 -out self-signed.crt
+</code></pre><p>然后同样需要输入 <a href="https://www.shangyang.me/2017/05/27/encrypt-rsa-x509/#%E9%80%9A%E8%BF%87-CSR-%E7%94%B3%E8%AF%B7-X509-CA-%E8%AF%81%E4%B9%A6">CSR 相关的信息</a>来申请；最后，会在本地目录中生成一个私钥 <em>private.key</em> 和一张自签名的证书 <em>self-signed.crt</em>；注意，自签名证书文件的后缀为 <em>.crt</em>；下面来看看各个参数的简要说明，</p>
+<p><code>-x509</code>告诉 openssl 生成一张自签名的证书；
+<code>-nodes</code>告诉 openssl 在生成私钥的时候忽略密码</p>
+<p>参考
+<a href="https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-apache-in-ubuntu-16-04">How To Create a Self-Signed SSL Certificate for Apache in Ubuntu 16.04</a></p>
+<p><a href="https://www.digitalocean.com/community/tutorials/openssl-essentials-working-with-ssl-certificates-private-keys-and-csrs">OpenSSL Essentials: Working with SSL Certificates, Private Keys and CSRs</a></p>
+<h1 id="内部结构">内部结构<a href="#内部结构" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>我们来查看一下刚才通过 openssl 生成的自签名证书 <em>self-signed.crt</em> 的内部结构；</p>
+<pre><code>$ openssl x509 -text -noout -in domain.crt
+</code></pre><p>内容如下，</p>
+<pre><code>Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            9f:56:fd:f5:9d:13:2e:d2
+        Signature Algorithm: sha1WithRSAEncryption
+        Issuer: C=CN, ST=ChengDu, L=ChengDu, O=HRX, OU=HRX, CN=HRX/emailAddress=comedshang@163.com
+        Validity
+            Not Before: May 27 13:42:23 2017 GMT
+            Not After : May 27 13:42:23 2018 GMT
+        Subject: C=CN, ST=ChengDu, L=ChengDu, O=HRX, OU=HRX, CN=HRX/emailAddress=comedshang@163.com
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            RSA Public Key: (2048 bit)
+                Modulus (2048 bit):
+                    00:e5:06:e7:94:b4:ff:ad:ae:26:9c:2c:76:2e:d2:
+                    c7:f6:b3:51:9a:15:1f:d6:6f:ee:f7:7b:13:61:b5:
+                    d5:07:de:6f:e4:78:05:cc:b3:74:fc:c4:ec:7f:07:
+                    c7:b3:1b:c3:b6:c5:e8:9a:00:48:5c:e3:7c:51:e2:
+                    34:1d:0e:e0:2f:4f:3d:4a:68:e3:fd:b4:c2:79:7f:
+                    f3:ac:24:6d:71:d6:44:7a:97:7a:10:e0:5b:2e:1c:
+                    80:91:71:4c:45:e8:97:2c:5d:30:68:1c:2a:28:96:
+                    24:1a:a2:40:ad:d8:aa:9b:d8:3b:89:e4:eb:a0:77:
+                    a4:1f:ab:5f:7d:8e:82:37:1d:c5:f5:9d:d6:5a:19:
+                    ea:5e:57:35:f9:ba:63:66:f0:4c:48:97:22:8f:2f:
+                    bf:7f:51:fe:bf:20:01:3c:17:11:9d:82:01:7c:f5:
+                    31:04:c7:33:10:75:5c:2a:b0:ae:d1:12:fe:6e:b9:
+                    5b:cf:67:1e:78:b6:ae:87:70:65:f8:c6:88:c6:10:
+                    7c:58:f5:7e:15:8a:47:97:9c:e1:68:7b:ed:7c:db:
+                    e5:6a:de:c1:4b:a1:05:6d:da:1e:bf:44:f9:05:6b:
+                    bb:c3:41:f3:f5:a8:39:7a:2b:eb:ac:d9:61:30:bf:
+                    0d:56:54:f8:39:b9:fc:01:93:5a:1d:aa:bf:2f:c8:
+                    30:97
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Key Identifier: 
+                CB:3C:17:D8:D4:F1:C2:7C:00:57:46:48:1F:9B:A2:4F:DA:9A:92:66
+            X509v3 Authority Key Identifier: 
+                keyid:CB:3C:17:D8:D4:F1:C2:7C:00:57:46:48:1F:9B:A2:4F:DA:9A:92:66
+                DirName:/C=CN/ST=ChengDu/L=ChengDu/O=HRX/OU=HRX/CN=HRX/emailAddress=comedshang@163.com
+                serial:9F:56:FD:F5:9D:13:2E:D2
+
+            X509v3 Basic Constraints: 
+                CA:TRUE
+    Signature Algorithm: sha1WithRSAEncryption
+        b1:6e:10:48:3c:4b:d1:4d:6e:5c:14:34:79:89:e0:95:3e:48:
+        3d:53:6c:65:64:ce:90:e2:da:17:2f:e2:8e:13:6a:1c:e2:d8:
+        b9:4c:f2:24:19:60:64:ae:66:cb:e6:82:de:a5:22:40:8e:50:
+        94:4c:5f:87:6e:f6:c4:be:ff:3b:75:eb:3a:f5:eb:aa:47:c4:
+        5c:14:d9:7d:38:ee:28:8c:96:8f:22:a1:85:63:a9:e3:23:d2:
+        64:fe:50:dd:ab:4e:53:f6:f7:67:c1:ec:39:89:20:04:f1:3f:
+        f1:18:5a🆎77:eb:02:d3:93:34:ca:e8:81:6b:6f:60:5c:9d:
+        b7:1f:e9:be:cb:9a:b2:73:47:52:d7:d6:89:ce:34:4c:46:3c:
+        c3:73:9f:93:07:72:41:d4:64:f9:f1:52:56:78:ac:96:fe:da:
+        b5:c0:b3:8f:e0:5e:8c:a3:bf:21:d7:99:27:ff:65:e4:62:8c:
+        15:14:8f:bb:04:54:30:4e:5e:32:a8:8c:ab:70:27:14:99:5e:
+        9b:11:dc:0a:e8:d4:59:8b:98🇩🇪30:b3:5e:f2:8c:e4:b3:2b:
+        62:07:9a:74:52:c0:e3:54:4c:86:4b💿88:f3:6b:1a:c8:66:
+        d6🆎1d:c5:12:e2:66:0a:01:a8:3d:0c:f8:d4:ac:1d:74:80:
+        83:06:3f:6d
+</code></pre><p>备注，要参看其它证书类型的内容，参考 <a href="https://www.digitalocean.com/community/tutorials/openssl-essentials-working-with-ssl-certificates-private-keys-and-csrs#view-certificates">https://www.digitalocean.com/community/tutorials/openssl-essentials-working-with-ssl-certificates-private-keys-and-csrs#view-certificates</a></p>
+<p>一些特性，</p>
+<ul>
+<li>首先，我们可以看到不像 𝐶𝐴CA 证书那样有多层证书结构，自签名证书只有一层证书结构；也就是没有 Certificate Chain 的概念；</li>
+<li>再次，可以看到 <em>Issuer</em> 发布者和证书拥有者 <em>Subject</em> 是相同的，都是 <em>C=CN, ST=ChengDu, L=ChengDu, O=HRX, OU=HRX, <a href="mailto:CN=HRX/emailAddress=comedshang@163.com">CN=HRX/emailAddress=comedshang@163.com</a></em>，表明证书的签名方和证书自己是同一个机构(或者角色)，这也就是<code>自签名</code>命名的由来；</li>
+</ul>
+<p>关键内容，</p>
+<ul>
+<li>Subject Public Key Info
+这段内容就是公钥的内容了；</li>
+<li>Signature Algorithm: sha1WithRSAEncryption
+这段内容就表示对公钥和身份信息一起的签名信息了，可以看到，采用的是 𝑆𝐻𝐴1SHA1 算法；</li>
+</ul>
+<p>最后，比较重要的是，因为该证书只有一层，所以，自签名证书在通讯过程中扮演的也就是 Root Certificate，通常是需要被加载如客户端的 trust store 中；</p>
+<h1 id="如何保证内网通讯的安全性">如何保证内网通讯的安全性<a href="#如何保证内网通讯的安全性" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>比如内网中，Alice 想和 Bob 保持可靠的加密通讯；</p>
+<ul>
+<li>
+<p>首先，Alice 需要生成秘钥 𝐾𝑝Kp 以及自签名证书 𝐶𝑠𝑒𝑙𝑓Cself</p>
+</li>
+<li>
+<p>然后，Bob 通过某种方式将 Alice 的 𝐶𝑠𝑒𝑙𝑓Cself 加入自己的 trust store 中；
+注意，如果 Bob 是通过浏览器访问的 Alice 站点，那么浏览器会提示，是否相信该证书，如果选择相信，这个时候，浏览器会自动将该 𝐶𝑠𝑒𝑙𝑓Cself 证书加入自己的 trust store 中；</p>
+</li>
+<li>
+<p>之后，某个时刻，Bob 向 Alice 发起安全通讯的会话，双方握手过程中，</p>
+</li>
+<li>
+<p>Alice 将 𝐶′𝑠𝑒𝑙𝑓Cself′ (X.509 自签名)证书发送给 Bob</p>
+</li>
+<li>
+<p>Bob 通过 trust store 中之前预加载的 𝐶𝑠𝑒𝑙𝑓Cself 中所指明的签名算法对 𝐶′𝑠𝑒𝑙𝑓Cself′ 进行签名，得到签名 𝑆′S′</p>
+</li>
+<li>
+<p>最后 Bob 使用 trust store 中 𝐶𝑠𝑒𝑙𝑓Cself 的签名 𝑆S 与 𝑆′S′ 进行比较，</p>
+</li>
+<li>
+<p>若相等，则表示 Alice 当前发送过来的证书是可靠的，也就是说，其身份信息和公钥是合法的，没有被伪造过；</p>
+</li>
+<li>
+<p>若不等，则表示 Alice 当前发送过来的证书是不可靠的，其身份信息或者是公钥是被篡改过的；应当立即停止与 Alice 的通讯；这种情况下，往往会提示握手失败，证书不可靠；</p>
+</li>
+</ul>
+<p>但切记，在公网中使用自签名证书的 SSL 加密通讯的方式是不可靠的，其根本原因是，因为没有公钥基础设施的支持，其自签名证书很容易被伪造；这部分内容在之前的 <a href="https://www.shangyang.me/2017/05/25/encrypt-rsa-pki/">RSA(五) PKI (Public Key Infrastructure) 公钥基础设施</a> 等系列文章中有过详细的阐述，有兴趣的读者可以从这里开始；</p>
+<h1 id="如何加入-trust-store">如何加入 trust store<a href="#如何加入-trust-store" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<p>参考如下的几篇文章，</p>
+<p>openssl with Apache:</p>
+<p><a href="https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-apache-in-ubuntu-16-04">How To Create a Self-Signed SSL Certificate for Apache in Ubuntu 16.04</a></p>
+<p><a href="https://www.akadia.com/services/ssh_test_certificate.html">How to create a self-signed SSL Certificate for Apache</a></p>
+<p>java keytool series:</p>
+<dl>
+<dt>Tomcat SSL Installation Instructions</dt>
+<dd><a href="https://www.sslshopper.com/tomcat-ssl-installation-instructions.html">https://www.sslshopper.com/tomcat-ssl-installation-instructions.html</a></dd>
+</dl>
+<p>java keytool - Key and Certificate Management Tool: <a href="http://docs.oracle.com/javase/1.5.0/docs/tooldocs/solaris/keytool.html">http://docs.oracle.com/javase/1.5.0/docs/tooldocs/solaris/keytool.html</a></p>
+<p>Import a private key into a Java Key Store: <a href="http://commandlinefanatic.com/cgi-bin/showarticle.cgi?article=art049">http://commandlinefanatic.com/cgi-bin/showarticle.cgi?article=art049</a></p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://roninzc.github.io/tags/rsa">RSA</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2021-03-03 13:47 &#43;0800</p>
+			</footer>
+		</article>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://roninzc.github.io/posts/golang/%E6%A0%87%E5%87%86%E5%BA%93/golang%E6%A0%87%E5%87%86%E5%BA%93%E9%99%90%E6%B5%81%E5%99%A8timerate%E5%AE%9E%E7%8E%B0%E5%89%96%E6%9E%90/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>Golang标准库限流器timerate实现剖析</span>
+			</a>
+			<a class="prev-post" href="https://roninzc.github.io/posts/rsa/rsa%E5%85%AD-x.509-ca-%E8%AF%81%E4%B9%A6/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>RSA(六) X.509 CA 证书</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+						<script src="https://utteranc.es/client.js"
+							repo="RoninZc/blog"
+							issue-term="pathname"
+							theme="github-light"
+							crossorigin="anonymous"
+							async>
+			</script>
+		</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2020 - 2021 <a href="https://roninzc.github.io">RoninZc</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a>
+			
+		</p>
+	</footer>
+
+
+	<script src="https://roninzc.github.io/js/main.min.3b8561d63aeee77aa04e677df95581a230b4b43adf7b208b8d671433e446cfc1.js"></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-166045776-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

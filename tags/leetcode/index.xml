@@ -7,7 +7,42 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-hans</language>
     <copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-    <lastBuildDate>Wed, 03 Mar 2021 16:36:09 +0800</lastBuildDate><atom:link href="https://roninzc.github.io/tags/leetcode/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 05 Mar 2021 14:58:29 +0800</lastBuildDate><atom:link href="https://roninzc.github.io/tags/leetcode/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>LeetCode 232:用栈实现队列</title>
+      <link>https://roninzc.github.io/posts/%E7%AE%97%E6%B3%95/leetcode/leetcode-232%E7%94%A8%E6%A0%88%E5%AE%9E%E7%8E%B0%E9%98%9F%E5%88%97/</link>
+      <pubDate>Fri, 05 Mar 2021 14:58:29 +0800</pubDate>
+      
+      <guid>https://roninzc.github.io/posts/%E7%AE%97%E6%B3%95/leetcode/leetcode-232%E7%94%A8%E6%A0%88%E5%AE%9E%E7%8E%B0%E9%98%9F%E5%88%97/</guid>
+      <description>题目 请你仅使用两个栈实现先入先出队列。队列应当支持一般队列的支持的所有操作（push、pop、peek、empty）：
+实现 MyQueue 类：
+ void push(int x) 将元素 x 推到队列的末尾 int pop() 从队列的开头移除并返回元素 int peek() 返回队列开头的元素 boolean empty() 如果队列为空，返回 true ；否则，返回 false  说明：
+ 你只能使用标准的栈操作 —— 也就是只有 push to top, peek/pop from top, size, 和 is empty 操作是合法的。 你所使用的语言也许不支持栈。你可以使用 list 或者 deque（双端队列）来模拟一个栈，只要是标准的栈操作即可。  进阶：
+ 你能否实现每个操作均摊时间复杂度为 O(1) 的队列？换句话说，执行 n 个操作的总时间复杂度为 O(n) ，即使其中一个操作可能花费较长时间。  示例：
+输入： [&amp;quot;MyQueue&amp;quot;, &amp;quot;push&amp;quot;, &amp;quot;push&amp;quot;, &amp;quot;peek&amp;quot;, &amp;quot;pop&amp;quot;, &amp;quot;empty&amp;quot;] [[], [1], [2], [], [], []] 输出： [null, null, null, 1, 1, false] 解释：</description>
+    </item>
+    
+    <item>
+      <title>LeetCode 354:俄罗斯信封套娃问题</title>
+      <link>https://roninzc.github.io/posts/%E7%AE%97%E6%B3%95/leetcode/leetcode-354%E4%BF%84%E7%BD%97%E6%96%AF%E5%A5%97%E5%A8%83%E4%BF%A1%E5%B0%81%E9%97%AE%E9%A2%98/</link>
+      <pubDate>Fri, 05 Mar 2021 09:26:34 +0800</pubDate>
+      
+      <guid>https://roninzc.github.io/posts/%E7%AE%97%E6%B3%95/leetcode/leetcode-354%E4%BF%84%E7%BD%97%E6%96%AF%E5%A5%97%E5%A8%83%E4%BF%A1%E5%B0%81%E9%97%AE%E9%A2%98/</guid>
+      <description>题目 给定一些标记了宽度和高度的信封，宽度和高度以整数对形式 (w, h) 出现。当另一个信封的宽度和高度都比这个信封大的时候，这个信封就可以放进另一个信封里，如同俄罗斯套娃一样。
+请计算最多能有多少个信封能组成一组“俄罗斯套娃”信封（即可以把一个信封放到另一个信封里面）。
+说明: 不允许旋转信封。
+示例:
+ 输入: envelopes = [[5,4],[6,4],[6,7],[2,3]] 输出: 3 解释: 最多信封的个数为 3, 组合为: [2,3] =&amp;gt; [5,4] =&amp;gt; [6,7]。
+ 思路  来源：labuladong
+ 这道题目其实是最长递增子序列 (Longes Increasing Subsequence, 简写为 LIS) 的一个变种，因为很显然，每次合法的嵌套都是大的套小的，相当于找一个最长递增的子序列，其长度就是最多能嵌套的信封个数。
+但是难点在于，标准的LIS算法只能在数组中寻找最长子序列，而我们的信封是由[w, h]这样的二维数对形式表示的，如何把LIS算法运用过来呢？
+w * h计算面积的形式是行不通的，1 * 10 大于 3 * 3，但是明显这样的两个信封是无法相互嵌套的。
+解法 这道题的解法是比较巧妙的：
+先对宽度 w 进行升序排列，如果遇到 w 相同的情况，则按照高度 h 降序排列。之后把所有的 h 取出，填入一个数组，在这个数组上计算 LIS 的长度就是我们的答案。
+示例：
+| 宽度w 高度h | [ 1 , 8 ] | [ 2 , 3 ] | [ 5 , 4 ]|降 | [ 5 , 2 ]|序 | [ 6 , 7 ]|降 | [ 6 , 4 ]|序 升 序 很明显，高度 h 组成的数组中 3 -&amp;gt; 4 -&amp;gt; 7 ，就是我们要找的LIS，其最大长度为3</description>
+    </item>
+    
     <item>
       <title>LeetCode 338:比特位计数</title>
       <link>https://roninzc.github.io/posts/%E7%AE%97%E6%B3%95/leetcode/leetcode-338%E6%AF%94%E7%89%B9%E4%BD%8D%E8%AE%A1%E6%95%B0/</link>

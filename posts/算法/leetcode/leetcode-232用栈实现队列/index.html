@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="LeetCode 232:用栈实现队列">
+<meta itemprop="description" content="题目 请你仅使用两个栈实现先入先出队列。队列应当支持一般队列的支持的所有操作（push、pop、peek、empty）：
+实现 MyQueue 类：
+ void push(int x) 将元素 x 推到队列的末尾 int pop() 从队列的开头移除并返回元素 int peek() 返回队列开头的元素 boolean empty() 如果队列为空，返回 true ；否则，返回 false  说明：
+ 你只能使用标准的栈操作 —— 也就是只有 push to top, peek/pop from top, size, 和 is empty 操作是合法的。 你所使用的语言也许不支持栈。你可以使用 list 或者 deque（双端队列）来模拟一个栈，只要是标准的栈操作即可。  进阶：
+ 你能否实现每个操作均摊时间复杂度为 O(1) 的队列？换句话说，执行 n 个操作的总时间复杂度为 O(n) ，即使其中一个操作可能花费较长时间。  示例：
+输入： [&quot;MyQueue&quot;, &quot;push&quot;, &quot;push&quot;, &quot;peek&quot;, &quot;pop&quot;, &quot;empty&quot;] [[], [1], [2], [], [], []] 输出： [null, null, null, 1, 1, false] 解释："><meta itemprop="datePublished" content="2021-03-05T14:58:29&#43;08:00" />
+<meta itemprop="dateModified" content="2021-03-05T14:58:29&#43;08:00" />
+<meta itemprop="wordCount" content="374">
+<meta itemprop="keywords" content="LeetCode," /><meta property="og:title" content="LeetCode 232:用栈实现队列" />
+<meta property="og:description" content="题目 请你仅使用两个栈实现先入先出队列。队列应当支持一般队列的支持的所有操作（push、pop、peek、empty）：
+实现 MyQueue 类：
+ void push(int x) 将元素 x 推到队列的末尾 int pop() 从队列的开头移除并返回元素 int peek() 返回队列开头的元素 boolean empty() 如果队列为空，返回 true ；否则，返回 false  说明：
+ 你只能使用标准的栈操作 —— 也就是只有 push to top, peek/pop from top, size, 和 is empty 操作是合法的。 你所使用的语言也许不支持栈。你可以使用 list 或者 deque（双端队列）来模拟一个栈，只要是标准的栈操作即可。  进阶：
+ 你能否实现每个操作均摊时间复杂度为 O(1) 的队列？换句话说，执行 n 个操作的总时间复杂度为 O(n) ，即使其中一个操作可能花费较长时间。  示例：
+输入： [&quot;MyQueue&quot;, &quot;push&quot;, &quot;push&quot;, &quot;peek&quot;, &quot;pop&quot;, &quot;empty&quot;] [[], [1], [2], [], [], []] 输出： [null, null, null, 1, 1, false] 解释：" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://roninzc.github.io/posts/%E7%AE%97%E6%B3%95/leetcode/leetcode-232%E7%94%A8%E6%A0%88%E5%AE%9E%E7%8E%B0%E9%98%9F%E5%88%97/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-03-05T14:58:29&#43;08:00" />
+<meta property="article:modified_time" content="2021-03-05T14:58:29&#43;08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="LeetCode 232:用栈实现队列"/>
+<meta name="twitter:description" content="题目 请你仅使用两个栈实现先入先出队列。队列应当支持一般队列的支持的所有操作（push、pop、peek、empty）：
+实现 MyQueue 类：
+ void push(int x) 将元素 x 推到队列的末尾 int pop() 从队列的开头移除并返回元素 int peek() 返回队列开头的元素 boolean empty() 如果队列为空，返回 true ；否则，返回 false  说明：
+ 你只能使用标准的栈操作 —— 也就是只有 push to top, peek/pop from top, size, 和 is empty 操作是合法的。 你所使用的语言也许不支持栈。你可以使用 list 或者 deque（双端队列）来模拟一个栈，只要是标准的栈操作即可。  进阶：
+ 你能否实现每个操作均摊时间复杂度为 O(1) 的队列？换句话说，执行 n 个操作的总时间复杂度为 O(n) ，即使其中一个操作可能花费较长时间。  示例：
+输入： [&quot;MyQueue&quot;, &quot;push&quot;, &quot;push&quot;, &quot;peek&quot;, &quot;pop&quot;, &quot;empty&quot;] [[], [1], [2], [], [], []] 输出： [null, null, null, 1, 1, false] 解释："/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>LeetCode 232:用栈实现队列</title>
+	<link rel="stylesheet" href="https://roninzc.github.io/css/style.min.b21595ccbc2181c24e6a019eb9b89ca67727675a14634f9cbdb25e7a4f556601.css">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://roninzc.github.io">RoninZc</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="https://roninzc.github.io/tags/">标签</a>
+					<a href="https://roninzc.github.io/about/">关于</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<span class="hdr-social hide-in-mobile"><a href="https://github.com/RoninZc" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://roninzc.github.io/posts/">文章</a></li>
+			<li><a href="https://roninzc.github.io/tags/">标签</a></li>
+			<li><a href="https://roninzc.github.io/about/">关于</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>3-5, 2021</span></div>
+				<h1>LeetCode 232:用栈实现队列</h1>
+			</header>
+			<div class="content">
+				<h3 id="题目">题目<a href="#题目" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>请你仅使用两个栈实现先入先出队列。队列应当支持一般队列的支持的所有操作（push、pop、peek、empty）：</p>
+<p>实现 MyQueue 类：</p>
+<ul>
+<li>void push(int x) 将元素 x 推到队列的末尾</li>
+<li>int pop() 从队列的开头移除并返回元素</li>
+<li>int peek() 返回队列开头的元素</li>
+<li>boolean empty() 如果队列为空，返回 true ；否则，返回 false</li>
+</ul>
+<p>说明：</p>
+<ul>
+<li>你只能使用标准的栈操作 —— 也就是只有 push to top, peek/pop from top, size, 和 is empty 操作是合法的。</li>
+<li>你所使用的语言也许不支持栈。你可以使用 list 或者 deque（双端队列）来模拟一个栈，只要是标准的栈操作即可。</li>
+</ul>
+<p>进阶：</p>
+<ul>
+<li>你能否实现每个操作均摊时间复杂度为 O(1) 的队列？换句话说，执行 n 个操作的总时间复杂度为 O(n) ，即使其中一个操作可能花费较长时间。</li>
+</ul>
+<p>示例：</p>
+<pre><code>输入：
+[&quot;MyQueue&quot;, &quot;push&quot;, &quot;push&quot;, &quot;peek&quot;, &quot;pop&quot;, &quot;empty&quot;]
+[[], [1], [2], [], [], []]
+输出：
+[null, null, null, 1, 1, false]
+</code></pre><p>解释：</p>
+<pre><code>MyQueue myQueue = new MyQueue();
+myQueue.push(1); // queue is: [1]
+myQueue.push(2); // queue is: [1, 2] (leftmost is front of the queue)
+myQueue.peek(); // return 1
+myQueue.pop(); // return 1, queue is [2]
+myQueue.empty(); // return false
+</code></pre><p>提示：</p>
+<p>1 &lt;= x &lt;= 9
+最多调用 100 次 push、pop、peek 和 empty
+假设所有操作都是有效的 （例如，一个空的队列不会调用 pop 或者 peek 操作）</p>
+<blockquote>
+<p>来源：力扣（LeetCode）
+链接：https://leetcode-cn.com/problems/implement-queue-using-stacks
+著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。</p>
+</blockquote>
+<h3 id="思路">思路<a href="#思路" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>这题比较简单，主要是实现队列的基本功能，即先进先出。而我们知道栈是先进后出的，这就需要我们额外的操作了。</p>
+<p>题目提示的比较明显，使用两个栈来实现。我们可以做出如下模型：</p>
+<ul>
+<li>两个栈分别为输入栈和输出栈</li>
+<li>输入栈负责接收 push 的内容</li>
+<li>输出栈负责 pop 和 peek 的内容</li>
+<li>当执行 pop 或者 peek 时，当输出栈为空时，将输入栈的内容输出到输入栈中</li>
+</ul>
+<pre><code>in : []
+out: []
+
+--push(1) 
+in : [1]
+out: []
+
+--push(2)
+in : [2,1]
+out: []
+
+--peek
+in : []
+out: [1,2]
+peek = 1
+
+--pop
+in : []
+out: [2]
+pop = 1
+
+--isEmpty
+isEmpty(in) &amp;&amp; isEmpty(out)
+
+</code></pre><h3 id="代码">代码<a href="#代码" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go">
+<span class="c1">// MyQueue 队列
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">MyQueue</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">in</span>  <span class="nx">Stack</span>
+	<span class="nx">out</span> <span class="nx">Stack</span>
+<span class="p">}</span>
+
+<span class="c1">// Constructor MyQueue构造方法
+</span><span class="c1"></span><span class="kd">func</span> <span class="nf">Constructor</span><span class="p">()</span> <span class="nx">MyQueue</span> <span class="p">{</span>
+	<span class="nx">in</span> <span class="o">:=</span> <span class="nb">new</span><span class="p">(</span><span class="nx">Stack</span><span class="p">)</span>
+	<span class="nx">out</span> <span class="o">:=</span> <span class="nb">new</span><span class="p">(</span><span class="nx">Stack</span><span class="p">)</span>
+	<span class="k">return</span> <span class="nx">MyQueue</span><span class="p">{</span>
+		<span class="nx">in</span><span class="p">:</span>  <span class="o">*</span><span class="nx">in</span><span class="p">,</span>
+		<span class="nx">out</span><span class="p">:</span> <span class="o">*</span><span class="nx">out</span><span class="p">,</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">mq</span> <span class="o">*</span><span class="nx">MyQueue</span><span class="p">)</span> <span class="nf">in2out</span><span class="p">()</span> <span class="p">{</span>
+	<span class="k">for</span> <span class="nb">len</span><span class="p">(</span><span class="nx">mq</span><span class="p">.</span><span class="nx">in</span><span class="p">)</span> <span class="p">&gt;</span> <span class="mi">0</span> <span class="p">{</span>
+		<span class="nx">mq</span><span class="p">.</span><span class="nx">out</span><span class="p">.</span><span class="nf">Push</span><span class="p">(</span><span class="nx">mq</span><span class="p">.</span><span class="nx">in</span><span class="p">.</span><span class="nf">Pop</span><span class="p">())</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// Push Push
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">mq</span> <span class="o">*</span><span class="nx">MyQueue</span><span class="p">)</span> <span class="nf">Push</span><span class="p">(</span><span class="nx">x</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">mq</span><span class="p">.</span><span class="nx">in</span><span class="p">.</span><span class="nf">Push</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// Pop Pop
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">mq</span> <span class="o">*</span><span class="nx">MyQueue</span><span class="p">)</span> <span class="nf">Pop</span><span class="p">()</span> <span class="kt">int</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="nx">mq</span><span class="p">.</span><span class="nx">out</span><span class="p">.</span><span class="nf">Len</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+		<span class="nx">mq</span><span class="p">.</span><span class="nf">in2out</span><span class="p">()</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="nx">mq</span><span class="p">.</span><span class="nx">out</span><span class="p">.</span><span class="nf">Pop</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="c1">// Peek Peek
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">mq</span> <span class="o">*</span><span class="nx">MyQueue</span><span class="p">)</span> <span class="nf">Peek</span><span class="p">()</span> <span class="kt">int</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="nx">mq</span><span class="p">.</span><span class="nx">out</span><span class="p">.</span><span class="nf">Len</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+		<span class="nx">mq</span><span class="p">.</span><span class="nf">in2out</span><span class="p">()</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="nx">mq</span><span class="p">.</span><span class="nx">out</span><span class="p">.</span><span class="nf">Top</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="c1">// Empty Empty
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">mq</span> <span class="o">*</span><span class="nx">MyQueue</span><span class="p">)</span> <span class="nf">Empty</span><span class="p">()</span> <span class="kt">bool</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="nx">mq</span><span class="p">.</span><span class="nx">in</span><span class="p">.</span><span class="nf">IsEmpty</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="nx">mq</span><span class="p">.</span><span class="nx">out</span><span class="p">.</span><span class="nf">IsEmpty</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="c1">// -------------------------------------------------------
+</span><span class="c1"></span>
+<span class="c1">// Stack 栈
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">Stack</span> <span class="p">[]</span><span class="kt">int</span>
+
+<span class="c1">// Len 获取栈的长度
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">stack</span> <span class="o">*</span><span class="nx">Stack</span><span class="p">)</span> <span class="nf">Len</span><span class="p">()</span> <span class="kt">int</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="o">*</span><span class="nx">stack</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// Push push
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">stack</span> <span class="o">*</span><span class="nx">Stack</span><span class="p">)</span> <span class="nf">Push</span><span class="p">(</span><span class="nx">value</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+	<span class="o">*</span><span class="nx">stack</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="o">*</span><span class="nx">stack</span><span class="p">,</span> <span class="nx">value</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// Top 获取栈的第一个
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">stack</span> <span class="o">*</span><span class="nx">Stack</span><span class="p">)</span> <span class="nf">Top</span><span class="p">()</span> <span class="kt">int</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="p">(</span><span class="o">*</span><span class="nx">stack</span><span class="p">)[</span><span class="nb">len</span><span class="p">(</span><span class="o">*</span><span class="nx">stack</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="c1">// Pop 弹出最后一个
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">stack</span> <span class="o">*</span><span class="nx">Stack</span><span class="p">)</span> <span class="nf">Pop</span><span class="p">()</span> <span class="kt">int</span> <span class="p">{</span>
+	<span class="nx">value</span> <span class="o">:=</span> <span class="p">(</span><span class="o">*</span><span class="nx">stack</span><span class="p">)[</span><span class="nb">len</span><span class="p">(</span><span class="o">*</span><span class="nx">stack</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+	<span class="o">*</span><span class="nx">stack</span> <span class="p">=</span> <span class="p">(</span><span class="o">*</span><span class="nx">stack</span><span class="p">)[:</span><span class="nb">len</span><span class="p">(</span><span class="o">*</span><span class="nx">stack</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+	<span class="k">return</span> <span class="nx">value</span>
+<span class="p">}</span>
+
+<span class="c1">// IsEmpty 判断是否为空
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">stack</span> <span class="o">*</span><span class="nx">Stack</span><span class="p">)</span> <span class="nf">IsEmpty</span><span class="p">()</span> <span class="kt">bool</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="o">*</span><span class="nx">stack</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="p">}</span>
+
+</code></pre></div>
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://roninzc.github.io/tags/leetcode">LeetCode</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2021-03-05 14:58 &#43;0800</p>
+			</footer>
+		</article>
+		<div class="post-nav thin">
+			<a class="prev-post" href="https://roninzc.github.io/posts/%E7%AE%97%E6%B3%95/leetcode/leetcode-354%E4%BF%84%E7%BD%97%E6%96%AF%E5%A5%97%E5%A8%83%E4%BF%A1%E5%B0%81%E9%97%AE%E9%A2%98/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>LeetCode 354:俄罗斯信封套娃问题</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+						<script src="https://utteranc.es/client.js"
+							repo="RoninZc/blog"
+							issue-term="pathname"
+							theme="github-light"
+							crossorigin="anonymous"
+							async>
+			</script>
+		</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2020 - 2021 <a href="https://roninzc.github.io">RoninZc</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a>
+			
+		</p>
+	</footer>
+
+
+	<script src="https://roninzc.github.io/js/main.min.3b8561d63aeee77aa04e677df95581a230b4b43adf7b208b8d671433e446cfc1.js"></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-166045776-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

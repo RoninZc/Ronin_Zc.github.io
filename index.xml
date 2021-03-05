@@ -7,7 +7,42 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-hans</language>
     <copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-    <lastBuildDate>Wed, 03 Mar 2021 16:36:09 +0800</lastBuildDate><atom:link href="https://roninzc.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 05 Mar 2021 14:58:29 +0800</lastBuildDate><atom:link href="https://roninzc.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>LeetCode 232:用栈实现队列</title>
+      <link>https://roninzc.github.io/posts/%E7%AE%97%E6%B3%95/leetcode/leetcode-232%E7%94%A8%E6%A0%88%E5%AE%9E%E7%8E%B0%E9%98%9F%E5%88%97/</link>
+      <pubDate>Fri, 05 Mar 2021 14:58:29 +0800</pubDate>
+      
+      <guid>https://roninzc.github.io/posts/%E7%AE%97%E6%B3%95/leetcode/leetcode-232%E7%94%A8%E6%A0%88%E5%AE%9E%E7%8E%B0%E9%98%9F%E5%88%97/</guid>
+      <description>题目 请你仅使用两个栈实现先入先出队列。队列应当支持一般队列的支持的所有操作（push、pop、peek、empty）：
+实现 MyQueue 类：
+ void push(int x) 将元素 x 推到队列的末尾 int pop() 从队列的开头移除并返回元素 int peek() 返回队列开头的元素 boolean empty() 如果队列为空，返回 true ；否则，返回 false  说明：
+ 你只能使用标准的栈操作 —— 也就是只有 push to top, peek/pop from top, size, 和 is empty 操作是合法的。 你所使用的语言也许不支持栈。你可以使用 list 或者 deque（双端队列）来模拟一个栈，只要是标准的栈操作即可。  进阶：
+ 你能否实现每个操作均摊时间复杂度为 O(1) 的队列？换句话说，执行 n 个操作的总时间复杂度为 O(n) ，即使其中一个操作可能花费较长时间。  示例：
+输入： [&amp;quot;MyQueue&amp;quot;, &amp;quot;push&amp;quot;, &amp;quot;push&amp;quot;, &amp;quot;peek&amp;quot;, &amp;quot;pop&amp;quot;, &amp;quot;empty&amp;quot;] [[], [1], [2], [], [], []] 输出： [null, null, null, 1, 1, false] 解释：</description>
+    </item>
+    
+    <item>
+      <title>LeetCode 354:俄罗斯信封套娃问题</title>
+      <link>https://roninzc.github.io/posts/%E7%AE%97%E6%B3%95/leetcode/leetcode-354%E4%BF%84%E7%BD%97%E6%96%AF%E5%A5%97%E5%A8%83%E4%BF%A1%E5%B0%81%E9%97%AE%E9%A2%98/</link>
+      <pubDate>Fri, 05 Mar 2021 09:26:34 +0800</pubDate>
+      
+      <guid>https://roninzc.github.io/posts/%E7%AE%97%E6%B3%95/leetcode/leetcode-354%E4%BF%84%E7%BD%97%E6%96%AF%E5%A5%97%E5%A8%83%E4%BF%A1%E5%B0%81%E9%97%AE%E9%A2%98/</guid>
+      <description>题目 给定一些标记了宽度和高度的信封，宽度和高度以整数对形式 (w, h) 出现。当另一个信封的宽度和高度都比这个信封大的时候，这个信封就可以放进另一个信封里，如同俄罗斯套娃一样。
+请计算最多能有多少个信封能组成一组“俄罗斯套娃”信封（即可以把一个信封放到另一个信封里面）。
+说明: 不允许旋转信封。
+示例:
+ 输入: envelopes = [[5,4],[6,4],[6,7],[2,3]] 输出: 3 解释: 最多信封的个数为 3, 组合为: [2,3] =&amp;gt; [5,4] =&amp;gt; [6,7]。
+ 思路  来源：labuladong
+ 这道题目其实是最长递增子序列 (Longes Increasing Subsequence, 简写为 LIS) 的一个变种，因为很显然，每次合法的嵌套都是大的套小的，相当于找一个最长递增的子序列，其长度就是最多能嵌套的信封个数。
+但是难点在于，标准的LIS算法只能在数组中寻找最长子序列，而我们的信封是由[w, h]这样的二维数对形式表示的，如何把LIS算法运用过来呢？
+w * h计算面积的形式是行不通的，1 * 10 大于 3 * 3，但是明显这样的两个信封是无法相互嵌套的。
+解法 这道题的解法是比较巧妙的：
+先对宽度 w 进行升序排列，如果遇到 w 相同的情况，则按照高度 h 降序排列。之后把所有的 h 取出，填入一个数组，在这个数组上计算 LIS 的长度就是我们的答案。
+示例：
+| 宽度w 高度h | [ 1 , 8 ] | [ 2 , 3 ] | [ 5 , 4 ]|降 | [ 5 , 2 ]|序 | [ 6 , 7 ]|降 | [ 6 , 4 ]|序 升 序 很明显，高度 h 组成的数组中 3 -&amp;gt; 4 -&amp;gt; 7 ，就是我们要找的LIS，其最大长度为3</description>
+    </item>
+    
     <item>
       <title>LeetCode 338:比特位计数</title>
       <link>https://roninzc.github.io/posts/%E7%AE%97%E6%B3%95/leetcode/leetcode-338%E6%AF%94%E7%89%B9%E4%BD%8D%E8%AE%A1%E6%95%B0/</link>
@@ -137,38 +172,6 @@ http://fileformats.archiveteam.org/wiki/DER
 什么是 PEM 格式 PEM 格式既是对 DER 编码转码为 Base64 字符格式；通过解码，将会还原为 DER 格式；
 http://fileformats.archiveteam.org/wiki/PEM
  A PEM file is plain text. It contain one or more objects, such as certificates or keys, which may not all be the same type.</description>
-    </item>
-    
-    <item>
-      <title>RSA(二) PKCS 公钥加密标准系列</title>
-      <link>https://roninzc.github.io/posts/rsa/rsa%E4%BA%8C-pkcs-%E5%85%AC%E9%92%A5%E5%8A%A0%E5%AF%86%E6%A0%87%E5%87%86%E7%B3%BB%E5%88%97/</link>
-      <pubDate>Wed, 03 Mar 2021 13:41:25 +0800</pubDate>
-      
-      <guid>https://roninzc.github.io/posts/rsa/rsa%E4%BA%8C-pkcs-%E5%85%AC%E9%92%A5%E5%8A%A0%E5%AF%86%E6%A0%87%E5%87%86%E7%B3%BB%E5%88%97/</guid>
-      <description>前言 本章着重描述 RSA PCKS(Public-Key Cryptography Standards Series 公钥加密标准系列)，RSA 又称为公钥加密技术，主要的使用场景是公钥加密、私钥解密（补充，当然，私钥加密，公钥机密也是可行的，但是这样做并不安全，因为公钥是公开的，所有拿到公钥的人都可以解密，也就失去了加密的本质；不过，可以用私钥来进行签名，后续有专门的博文对此进行描述）；
-为了定义 RSA 加密的标准系列，IETF 组织总共定义了 15 个子系列标准，分别用在定义标准格式、如何封装、公钥加密封装标准、私钥加密封装标准、网络传输序列化标准等等.. 具体可以参考 wikipedia PCKS 的解释: https://en.wikipedia.org/wiki/PKCS；
-下面我就几个核心的系列标准进行描述，
-重要：本文为作者的原创作品，转载需注明出处；
- 转载至https://www.shangyang.me/2017/05/24/encrypt-rsa-keyformat/
- 未完待续….
-PKCS #1 RSA Cryptography Standard 摘要 wikepedia 中的一段摘要，
- See RFC 3447. Defines the mathematical properties and format of RSA public and private keys (ASN.1-encoded in clear-text), and the basic algorithms and encoding/padding schemes for performing RSA encryption, decryption, and producing and verifying signatures.</description>
-    </item>
-    
-    <item>
-      <title>RSA(一) 背后的数学原理</title>
-      <link>https://roninzc.github.io/posts/rsa/rsa%E4%B8%80-%E8%83%8C%E5%90%8E%E7%9A%84%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86/</link>
-      <pubDate>Wed, 03 Mar 2021 13:40:25 +0800</pubDate>
-      
-      <guid>https://roninzc.github.io/posts/rsa/rsa%E4%B8%80-%E8%83%8C%E5%90%8E%E7%9A%84%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86/</guid>
-      <description>前言 本篇文章将试图从数学原理上理清 RSA 的加密解密的原理；并写一个简单的加密解密的用例来使用；
-备注，本文是作者的原创作品，转载请注明出处。
- 转载至https://www.shangyang.me/2017/05/24/encrypt-rsa-keyformat/
- 数论相关 模 N 随机选择两个大的质数 p 和 q，p 不等于 q, 计算得到 𝑁=𝑝𝑞N=pq
-欧拉函数的值 r = 𝜑(pq) 𝑟=𝜑(𝑝𝑞)=𝜑(𝑝)𝜑(𝑞)=(𝑝−1)(𝑞−1)r=𝜑(pq)=𝜑(p)𝜑(q)=(p−1)(q−1)
-欧拉函数值求的是有多少个小于 N 的数与 N 互质，如果 N 本身为质数，那么就有 N-1 个数与 N 互质；
-随机数 e 选择一个整数 e 且 1&amp;lt;𝑒&amp;lt;𝑟1&amp;lt;e&amp;lt;r，使得 e 与 r 互质(两个数的公约数为 1)；取 e 的目的是为了求得 e 关于 r 的模反元素 d；
-模反元素 d 什么是模反元素 d 由e小节可知，模反元素 d 是 e 关于 r 的模反元素且若模反元素 d 存在，当且仅当 e 与 r 互质；</description>
     </item>
     
   </channel>
